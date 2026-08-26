@@ -2,7 +2,7 @@
 deal made. Sent after commit; a mail failure must never break the transaction."""
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.template.loader import render_to_string
 
@@ -10,10 +10,15 @@ from django.template.loader import render_to_string
 def _send(template: str, to: str, context: dict) -> None:
     context = {**context, "frontend_url": settings.FRONTEND_URL}
     subject = render_to_string(f"notifications/{template}_subject.txt", context).strip()
-    body = render_to_string(f"notifications/{template}_body.txt", context)
-    transaction.on_commit(
-        lambda: send_mail(subject, body, None, [to], fail_silently=not settings.DEBUG)
-    )
+    text = render_to_string(f"notifications/{template}_body.txt", context)
+    html = render_to_string(f"notifications/{template}_body.html", context)
+
+    def deliver():
+        message = EmailMultiAlternatives(subject, text, None, [to])
+        message.attach_alternative(html, "text/html")
+        message.send(fail_silently=not settings.DEBUG)
+
+    transaction.on_commit(deliver)
 
 
 def brief_received(brief) -> None:
@@ -31,6 +36,10 @@ def proposal_received(proposal) -> None:
         to,
         {"proposal": proposal, "brief": brief, "amount_kr": proposal.amount_ore // 100},
     )
+
+
+def waitlist_invite(entry, code: str) -> None:
+    _send("waitlist_invite", entry.email, {"entry": entry, "code": code})
 
 
 def deal_created(deal) -> None:

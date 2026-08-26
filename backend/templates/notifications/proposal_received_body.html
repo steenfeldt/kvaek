@@ -1,0 +1,8 @@
+{% extends "email_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+<p style="margin:0 0 16px;">Der er kommet et nyt forslag i forhandlingen på "{{ brief.campaign.name }}":</p>
+<div style="font-size:28px;font-weight:700;text-align:center;padding:16px;background:#faf5f0;border-radius:12px;margin:0 0 16px;">{{ amount_kr }} kr.</div>
+{% if proposal.message %}<div style="background:#faf5f0;border-radius:12px;padding:16px 20px;margin:0 0 24px;white-space:pre-wrap;color:#6b5d4f;">"{{ proposal.message }}"</div>{% endif %}
+<p style="margin:0;text-align:center;"><a href="{{ frontend_url }}/briefs/{{ brief.id }}" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Se forslag og svar</a></p>
+{% endblock content %}

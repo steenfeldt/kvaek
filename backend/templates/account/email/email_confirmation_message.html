@@ -1,0 +1,12 @@
+{% extends "account/email/base_message.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+{% if code %}
+<p style="margin:0 0 20px;">Din bekræftelseskode:</p>
+<div style="font-size:30px;letter-spacing:5px;font-weight:700;text-align:center;padding:18px;background:#faf5f0;border-radius:12px;margin:0 0 20px;">{{ code }}</div>
+<p style="margin:0;color:#6b5d4f;font-size:14px;">Indtast den i dit åbne browservindue.</p>
+{% else %}
+<p style="margin:0 0 24px;">Bekræft din e-mail for at komme i gang:</p>
+<p style="margin:0;text-align:center;"><a href="{{ activate_url }}" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Bekræft e-mail</a></p>
+{% endif %}
+{% endblock content %}

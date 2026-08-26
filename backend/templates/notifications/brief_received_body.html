@@ -1,0 +1,7 @@
+{% extends "email_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej {{ brief.creator.display_name }},</p>
+<p style="margin:0 0 16px;"><strong>{{ brief.campaign.brand.company_name }}</strong> har sendt dig en brief på kampagnen "{{ brief.campaign.name }}":</p>
+<div style="background:#faf5f0;border-radius:12px;padding:18px 20px;margin:0 0 24px;white-space:pre-wrap;">{{ brief.message }}</div>
+<p style="margin:0;text-align:center;"><a href="{{ frontend_url }}/briefs/{{ brief.id }}" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Se brief og svar</a></p>
+{% endblock content %}

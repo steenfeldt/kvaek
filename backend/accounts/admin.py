@@ -1,9 +1,7 @@
 import secrets
 
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -111,20 +109,12 @@ class WaitlistEntryAdmin(admin.ModelAdmin):
 
     @admin.action(description="Create invite codes and email selected")
     def send_invites(self, request, queryset):
+        from notifications.emails import waitlist_invite
+
         for entry in queryset.filter(invited_at__isnull=True):
             code = f"KVAEK-{secrets.token_hex(3).upper()}"
             InviteCode.objects.create(code=code, note=f"waitlist: {entry.email}")
-            send_mail(
-                "Din invitation er klar",
-                f"Hej{' ' + entry.name if entry.name else ''},\n\n"
-                f"Du står på ventelisten — nu er der plads til dig!\n\n"
-                f"Din invitationskode: {code}\n\n"
-                f"Opret din profil her: {settings.FRONTEND_URL}/creators\n\n"
-                f"Venlig hilsen\nKvæk",
-                None,
-                [entry.email],
-                fail_silently=False,
-            )
+            waitlist_invite(entry, code)
             entry.invited_at = timezone.now()
             entry.save(update_fields=["invited_at"])
 

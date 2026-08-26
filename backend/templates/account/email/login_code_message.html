@@ -1,0 +1,7 @@
+{% extends "account/email/base_message.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+<p style="margin:0 0 20px;">Her er din loginkode:</p>
+<div style="font-size:30px;letter-spacing:5px;font-weight:700;text-align:center;padding:18px;background:#faf5f0;border-radius:12px;margin:0 0 20px;">{{ code }}</div>
+<p style="margin:0;color:#6b5d4f;font-size:14px;">Indtast den i dit åbne browservindue. Har du ikke forsøgt at logge ind, kan du se bort fra denne mail.</p>
+{% endblock content %}

@@ -1,0 +1,7 @@
+{% extends "email_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+<p style="margin:0 0 16px;">I har en aftale! 🎉 <strong>{{ counterpart }}</strong> og du er enige om <strong>{{ amount_kr }} kr.</strong> på kampagnen "{{ brief.campaign.name }}".</p>
+<p style="margin:0 0 24px;">Chatten er nu åben — aftal detaljerne der.</p>
+<p style="margin:0;text-align:center;"><a href="{{ frontend_url }}/deals/{{ deal.id }}" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Gå til chatten</a></p>
+{% endblock content %}

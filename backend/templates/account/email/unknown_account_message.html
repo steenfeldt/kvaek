@@ -1,0 +1,8 @@
+{% extends "account/email/base_message.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+<p style="margin:0 0 20px;">Nogen (forhåbentlig dig) forsøgte at logge ind med <strong>{{ email }}</strong>, men der findes ingen konto med den e-mail.</p>
+<p style="margin:0 0 24px;">Vil du oprette en konto?</p>
+<p style="margin:0 0 20px;text-align:center;"><a href="{{ signup_url }}" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Kom i gang</a></p>
+<p style="margin:0;color:#6b5d4f;font-size:14px;">Ellers kan du se bort fra denne mail.</p>
+{% endblock content %}
