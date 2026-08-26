@@ -1,13 +1,29 @@
-"""Mollie checkout + reconciliation. The webhook (or return-page poll) is the source
-of truth: we always fetch the payment from Mollie and reconcile — never trust input."""
+"""Mollie checkout + reconciliation + invoicing. The webhook (or return-page
+poll) is the source of truth: we always fetch the payment from Mollie and
+reconcile — never trust input. Tier prices are ex VAT; checkout charges gross
+and a sequential invoice is issued the moment a payment becomes paid."""
 
 from django.conf import settings
-from django.db import transaction
+from django.core.files.base import ContentFile
+from django.db import IntegrityError, transaction
+from django.db.models import Max
 
 from campaigns.models import TIER_CONFIG, Campaign
 from campaigns.services import activate_campaign
+from notifications import emails as notify
 
-from .models import Payment
+from .invoice_pdf import render_invoice_pdf
+from .models import Invoice, Payment
+
+VAT_RATE_PERCENT = 25
+
+
+def vat_ore(net_ore: int) -> int:
+    return net_ore * VAT_RATE_PERCENT // 100
+
+
+def gross_ore(net_ore: int) -> int:
+    return net_ore + vat_ore(net_ore)
 
 
 def _client():
@@ -19,8 +35,9 @@ def _client():
 
 
 def create_checkout(campaign: Campaign) -> Payment:
-    price_ore = TIER_CONFIG[campaign.tier]["price_ore"]
-    payment = Payment.objects.create(campaign=campaign, amount_ore=price_ore)
+    net = TIER_CONFIG[campaign.tier]["price_ore"]
+    amount = gross_ore(net)
+    payment = Payment.objects.create(campaign=campaign, amount_ore=amount)
 
     if not settings.MOLLIE_API_KEY:
         if not settings.DEBUG:
@@ -30,10 +47,11 @@ def create_checkout(campaign: Campaign) -> Payment:
         payment.provider_snapshot = {"simulated": True}
         payment.save(update_fields=["status", "provider_snapshot", "updated_at"])
         activate_campaign(campaign)
+        create_invoice(payment)
         return payment
 
     payload = {
-        "amount": {"currency": "DKK", "value": f"{price_ore / 100:.2f}"},
+        "amount": {"currency": "DKK", "value": f"{amount / 100:.2f}"},
         "description": f"Campaign: {campaign.name} ({campaign.get_tier_display()})",
         "redirectUrl": f"{settings.FRONTEND_URL}/campaigns/{campaign.id}/payment-return",
         "metadata": {"payment_id": payment.id, "campaign_id": campaign.id},
@@ -68,4 +86,46 @@ def reconcile_payment(mollie_payment_id: str) -> Payment | None:
     payment.save(update_fields=["status", "provider_snapshot", "updated_at"])
     if payment.status == Payment.Status.PAID:
         activate_campaign(payment.campaign)
+        create_invoice(payment)
     return payment
+
+
+def create_invoice(payment: Payment) -> Invoice:
+    """Idempotent; sequential unbroken numbering (unique-constraint retry)."""
+    existing = Invoice.objects.filter(payment=payment).first()
+    if existing is not None:
+        return existing
+    campaign = payment.campaign
+    brand = campaign.brand
+    net = TIER_CONFIG[campaign.tier]["price_ore"]
+    invoice = None
+    for _ in range(5):
+        number = (Invoice.objects.aggregate(m=Max("number"))["m"] or 0) + 1
+        try:
+            invoice = Invoice.objects.create(
+                number=number,
+                payment=payment,
+                seller_name=settings.INVOICE_SELLER_NAME,
+                seller_cvr=settings.INVOICE_SELLER_CVR,
+                seller_address=settings.INVOICE_SELLER_ADDRESS,
+                seller_email=settings.INVOICE_SELLER_EMAIL,
+                buyer_company=brand.company_name,
+                buyer_cvr=brand.cvr,
+                buyer_email=brand.user.email,
+                description=(
+                    f'Kampagne "{campaign.name}" — {campaign.get_tier_display()}-pakke '
+                    f"({TIER_CONFIG[campaign.tier]['briefs']} briefs)"
+                ),
+                net_ore=net,
+                vat_ore=vat_ore(net),
+                gross_ore=gross_ore(net),
+            )
+            break
+        except IntegrityError:
+            continue
+    if invoice is None:
+        raise RuntimeError("Could not allocate invoice number")
+    pdf_bytes = render_invoice_pdf(invoice)
+    invoice.pdf.save(f"faktura-{invoice.number}.pdf", ContentFile(pdf_bytes), save=True)
+    notify.invoice_created(invoice, pdf_bytes)
+    return invoice

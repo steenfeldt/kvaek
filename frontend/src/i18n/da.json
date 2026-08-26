@@ -96,7 +96,10 @@
     "send": "Send brief",
     "briefSent": "Brief sendt",
     "noShortlisted": "Ingen gemte creators endnu — swipe og gem nogen først.",
-    "briefsList": "Sendte briefs"
+    "briefsList": "Sendte briefs",
+    "vatNote": "Alle priser er ekskl. moms — 25% tillægges ved betaling.",
+    "totalInclVat": "I alt {amount} inkl. moms",
+    "invoiceDownload": "Download faktura {number} (PDF)"
   },
   "payment": {
     "waiting": "Bekræfter din betaling…",
@@ -187,7 +190,7 @@
     "waitlistSub": "Skriv dig på ventelisten, så sender vi dig en kode, når der er plads.",
     "waitlistCta": "Skriv mig op",
     "waitlistDone": "Du er på listen! Vi vender tilbage, når der er plads.",
-    "waitlistConsent": "Vi bruger kun dine oplysninger til at kontakte dig om betaen."
+    "waitlistConsent": "Vi bruger kun dine oplysninger til at kontakte dig om produktet."
   },
   "report": {
     "button": "Anmeld",

@@ -1,0 +1,10 @@
+{% extends "email_base.html" %}
+{% block content %}
+<p style="margin:0 0 16px;">Hej,</p>
+<p style="margin:0 0 16px;">Tak for dit køb! Din faktura (nr. {{ invoice.number }}) er vedhæftet som PDF.</p>
+<div style="background:#faf5f0;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
+  {{ invoice.description }}<br>
+  <strong>Total: {{ gross_kr }} kr. inkl. moms</strong>
+</div>
+<p style="margin:0;text-align:center;"><a href="{{ frontend_url }}/campaigns" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Se dine kampagner</a></p>
+{% endblock content %}

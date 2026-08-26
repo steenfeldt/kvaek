@@ -96,7 +96,10 @@
     "send": "Send brief",
     "briefSent": "Brief sent",
     "noShortlisted": "No saved creators yet — swipe and save some first.",
-    "briefsList": "Sent briefs"
+    "briefsList": "Sent briefs",
+    "vatNote": "All prices excl. VAT — 25% is added at payment.",
+    "totalInclVat": "Total {amount} incl. VAT",
+    "invoiceDownload": "Download invoice {number} (PDF)"
   },
   "payment": {
     "waiting": "Confirming your payment…",
@@ -187,7 +190,7 @@
     "waitlistSub": "Join the waitlist and we'll send you a code when a spot opens.",
     "waitlistCta": "Put me on the list",
     "waitlistDone": "You're on the list! We'll get back to you.",
-    "waitlistConsent": "We only use your details to contact you about the beta."
+    "waitlistConsent": "We only use your details to contact you about the product."
   },
   "report": {
     "button": "Report",

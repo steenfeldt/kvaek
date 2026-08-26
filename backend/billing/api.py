@@ -1,3 +1,4 @@
+from django.http import FileResponse
 from ninja import Form, Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
@@ -5,8 +6,27 @@ from ninja.security import django_auth
 from campaigns.models import Campaign
 
 from . import services
+from .models import Invoice
 
 router = Router(tags=["billing"])
+
+
+@router.get("/invoices/{invoice_id}/pdf", auth=django_auth)
+def invoice_pdf(request, invoice_id: int):
+    invoice = (
+        Invoice.objects.select_related("payment__campaign__brand__user").filter(id=invoice_id).first()
+    )
+    if invoice is None or not invoice.pdf:
+        raise HttpError(404, "Invoice not found")
+    is_owner = invoice.payment.campaign.brand.user_id == request.user.id
+    if not (is_owner or request.user.is_staff):
+        raise HttpError(404, "Invoice not found")
+    return FileResponse(
+        invoice.pdf.open("rb"),
+        as_attachment=True,
+        filename=f"faktura-{invoice.number}.pdf",
+        content_type="application/pdf",
+    )
 
 
 class CheckoutOut(Schema):

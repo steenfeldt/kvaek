@@ -42,6 +42,25 @@ def waitlist_invite(entry, code: str) -> None:
     _send("waitlist_invite", entry.email, {"entry": entry, "code": code})
 
 
+def invoice_created(invoice, pdf_bytes: bytes) -> None:
+    context = {
+        "invoice": invoice,
+        "frontend_url": settings.FRONTEND_URL,
+        "gross_kr": f"{invoice.gross_ore // 100},{invoice.gross_ore % 100:02d}",
+    }
+    subject = render_to_string("notifications/invoice_subject.txt", context).strip()
+    text = render_to_string("notifications/invoice_body.txt", context)
+    html = render_to_string("notifications/invoice_body.html", context)
+
+    def deliver():
+        message = EmailMultiAlternatives(subject, text, None, [invoice.buyer_email])
+        message.attach_alternative(html, "text/html")
+        message.attach(f"faktura-{invoice.number}.pdf", pdf_bytes, "application/pdf")
+        message.send(fail_silently=not settings.DEBUG)
+
+    transaction.on_commit(deliver)
+
+
 def deal_created(deal) -> None:
     brief = deal.brief
     context = {"deal": deal, "brief": brief, "amount_kr": deal.agreed_amount_ore // 100}

@@ -36,12 +36,18 @@ def _domain(fn, *args, **kwargs):
 class TierOut(Schema):
     tier: str
     price_ore: int
+    price_incl_vat_ore: int
     briefs: int
 
 
 @router.get("/tiers", response=list[TierOut], auth=None)
 def tiers(request):
-    return [TierOut(tier=t, **TIER_CONFIG[t]) for t in Tier.values]
+    from billing.services import gross_ore
+
+    return [
+        TierOut(tier=t, price_incl_vat_ore=gross_ore(TIER_CONFIG[t]["price_ore"]), **TIER_CONFIG[t])
+        for t in Tier.values
+    ]
 
 
 class CampaignIn(Schema):
@@ -79,6 +85,8 @@ def list_campaigns(request):
 
 class CampaignDetailOut(CampaignOut):
     briefs: list["BriefOut"]
+    invoice_id: int | None = None
+    invoice_number: int | None = None
 
 
 @router.get("/campaigns/{campaign_id}", response=CampaignDetailOut)
@@ -99,8 +107,13 @@ def campaign_detail(request, campaign_id: int):
         for payment in pending:
             reconcile_payment(payment.mollie_payment_id)
         campaign.refresh_from_db()
+    from billing.models import Invoice
+
+    invoice = Invoice.objects.filter(payment__campaign=campaign).first()
     briefs = campaign.briefs.select_related("campaign", "creator").order_by("-created_at")
     return CampaignDetailOut(
+        invoice_id=invoice.id if invoice else None,
+        invoice_number=invoice.number if invoice else None,
         id=campaign.id,
         name=campaign.name,
         description=campaign.description,

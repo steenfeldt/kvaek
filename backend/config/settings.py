@@ -127,8 +127,13 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 
-# --- payments ---
+# --- payments & invoicing ---
 MOLLIE_API_KEY = os.environ.get("MOLLIE_API_KEY", "")
+# Seller identity on invoices — replace via env when the ApS is registered.
+INVOICE_SELLER_NAME = os.environ.get("INVOICE_SELLER_NAME", "Kvæk (under stiftelse)")
+INVOICE_SELLER_CVR = os.environ.get("INVOICE_SELLER_CVR", "")
+INVOICE_SELLER_ADDRESS = os.environ.get("INVOICE_SELLER_ADDRESS", "")
+INVOICE_SELLER_EMAIL = os.environ.get("INVOICE_SELLER_EMAIL", "noreply@kvaek.com")
 # Public origin of the backend, for Mollie webhooks (must be reachable by Mollie).
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 

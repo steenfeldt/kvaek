@@ -57,6 +57,7 @@ const createMutation = useMutation({
             <span class="block text-sm text-ink-600">{{ $t("campaigns.briefsIncluded", { count: t.briefs }) }}</span>
           </label>
         </div>
+        <p class="text-xs text-ink-600">{{ $t("campaigns.vatNote") }}</p>
         <UButton type="submit" :loading="createMutation.isPending.value" size="lg" block>
           {{ $t("campaigns.create") }}
         </UButton>

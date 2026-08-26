@@ -1,0 +1,11 @@
+Hej,
+
+Tak for dit køb! Din faktura ({{ invoice.number }}) er vedhæftet som PDF.
+
+{{ invoice.description }}
+Total: {{ gross_kr }} kr. inkl. moms
+
+Du kan også hente fakturaen fra kampagnesiden: {{ frontend_url }}/campaigns
+
+Venlig hilsen
+Kvæk

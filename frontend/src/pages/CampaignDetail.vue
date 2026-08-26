@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "../lib/api";
+import { kr } from "../lib/format";
 import { statusColor } from "../lib/status";
 
 interface Brief {
@@ -20,6 +21,14 @@ interface Campaign {
   briefs_total: number;
   briefs_used: number;
   briefs: Brief[];
+  invoice_id: number | null;
+  invoice_number: number | null;
+}
+interface Tier {
+  tier: string;
+  price_ore: number;
+  price_incl_vat_ore: number;
+  briefs: number;
 }
 interface Card {
   id: number;
@@ -39,6 +48,12 @@ const queryClient = useQueryClient();
 const { data: campaign } = useQuery({
   queryKey: ["campaign", id],
   queryFn: () => api<Campaign>(`/campaigns/${id}`),
+});
+
+const { data: tiers } = useQuery({ queryKey: ["tiers"], queryFn: () => api<Tier[]>("/tiers"), staleTime: Infinity });
+const grossAmount = computed(() => {
+  const t = tiers.value?.find((t) => t.tier === campaign.value?.tier);
+  return t ? t.price_incl_vat_ore : null;
 });
 
 const { data: shortlisted } = useQuery({
@@ -99,16 +114,27 @@ const briefMutation = useMutation({
       <p v-if="campaign.status === 'active'" class="mt-2 text-sm text-ink-600">
         {{ $t("campaigns.briefsUsed", { used: campaign.briefs_used, total: campaign.briefs_total }) }}
       </p>
-      <UButton
-        v-if="campaign.status === 'draft'"
-        :loading="payMutation.isPending.value"
-        size="lg"
-        block
-        class="mt-4"
-        @click="payMutation.mutate()"
+      <template v-if="campaign.status === 'draft'">
+        <UButton
+          :loading="payMutation.isPending.value"
+          size="lg"
+          block
+          class="mt-4"
+          @click="payMutation.mutate()"
+        >
+          {{ $t("campaigns.payActivate") }}
+        </UButton>
+        <p v-if="grossAmount" class="mt-2 text-center text-sm text-ink-600">
+          {{ $t("campaigns.totalInclVat", { amount: kr(grossAmount) }) }}
+        </p>
+      </template>
+      <a
+        v-if="campaign.invoice_id"
+        :href="`/api/invoices/${campaign.invoice_id}/pdf`"
+        class="mt-3 block text-sm text-clay-700 underline"
       >
-        {{ $t("campaigns.payActivate") }}
-      </UButton>
+        {{ $t("campaigns.invoiceDownload", { number: campaign.invoice_number }) }}
+      </a>
     </UCard>
 
     <UCard v-if="campaign.status === 'active' && quotaLeft > 0">
