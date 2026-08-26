@@ -90,11 +90,6 @@ ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
-# Passwordless single-input auth: the SPA needs to know whether an email has an
-# account to pick signup vs login-code, so enumeration prevention is off (rate
-# limits still apply).
-ACCOUNT_PREVENT_ENUMERATION = False
-
 HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": FRONTEND_URL + "/auth/verify-email/{key}",

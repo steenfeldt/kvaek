@@ -7,12 +7,15 @@
     "creatorSub": "Free for creators. Invite-only during beta."
   },
   "auth": {
-    "title": "Log in or sign up",
     "emailLabel": "Your email",
     "sendCode": "Send code",
     "codeLabel": "Enter the code from your email",
     "confirm": "Confirm",
-    "sentTo": "We sent a code to {email}"
+    "sentTo": "We sent a code to {email}",
+    "login": "Log in",
+    "signup": "Sign up",
+    "noCodeLogin": "No code in your inbox? You may not have an account yet —",
+    "noCodeSignup": "No code in your inbox? You may already have an account —"
   },
   "onboarding": {
     "choose": "Who are you?",

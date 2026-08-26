@@ -7,12 +7,15 @@
     "creatorSub": "Gratis for skabere. Kun invitation i beta."
   },
   "auth": {
-    "title": "Log ind eller opret konto",
     "emailLabel": "Din e-mail",
     "sendCode": "Send kode",
     "codeLabel": "Indtast koden fra din e-mail",
     "confirm": "Bekræft",
-    "sentTo": "Vi har sendt en kode til {email}"
+    "sentTo": "Vi har sendt en kode til {email}",
+    "login": "Log ind",
+    "signup": "Opret konto",
+    "noCodeLogin": "Ingen kode i indbakken? Måske har du ikke en konto endnu —",
+    "noCodeSignup": "Ingen kode i indbakken? Måske har du allerede en konto —"
   },
   "onboarding": {
     "choose": "Hvem er du?",
