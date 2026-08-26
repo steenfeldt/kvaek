@@ -46,7 +46,9 @@
     "acceptTerms": "Jeg accepterer",
     "termsLink": "vilkårene",
     "and": "og",
-    "privacyLink": "privatlivspolitikken"
+    "privacyLink": "privatlivspolitikken",
+    "staffNote": "Du er logget ind som administrator uden en profil i appen — det er derfor, du ser denne side.",
+    "staffLink": "Gå til admin"
   },
   "nav": {
     "deck": "Swipe",

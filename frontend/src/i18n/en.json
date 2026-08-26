@@ -46,7 +46,9 @@
     "acceptTerms": "I accept the",
     "termsLink": "terms",
     "and": "and the",
-    "privacyLink": "privacy policy"
+    "privacyLink": "privacy policy",
+    "staffNote": "You are logged in as an administrator without an app profile — that is why you see this page.",
+    "staffLink": "Go to admin"
   },
   "nav": {
     "deck": "Swipe",

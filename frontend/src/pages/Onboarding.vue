@@ -74,6 +74,12 @@ async function submit() {
 
 <template>
   <main class="mx-auto flex max-w-md flex-col gap-6 px-6 pt-12 pb-10 sm:pt-16">
+    <UAlert v-if="session.me?.is_staff" color="info" variant="subtle">
+      <template #description>
+        {{ $t("onboarding.staffNote") }}
+        <a href="/admin/" class="font-medium underline">{{ $t("onboarding.staffLink") }}</a>
+      </template>
+    </UAlert>
     <template v-if="!role">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.choose") }}</h1>
       <div class="grid gap-3">

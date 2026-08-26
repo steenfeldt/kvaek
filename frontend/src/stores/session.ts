@@ -6,6 +6,7 @@ interface Me {
   email?: string | null;
   role?: "creator" | "brand" | null;
   display_name?: string | null;
+  is_staff?: boolean;
 }
 
 export const useSession = defineStore("session", {

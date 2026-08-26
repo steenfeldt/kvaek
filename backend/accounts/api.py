@@ -25,6 +25,7 @@ class MeOut(Schema):
     email: str | None = None
     role: str | None = None
     display_name: str | None = None
+    is_staff: bool = False
 
 
 @router.get("/me", response=MeOut, auth=None)
@@ -38,7 +39,13 @@ def me(request):
         display_name = user.creator_profile.display_name
     elif role == "brand":
         display_name = user.brand_profile.company_name
-    return MeOut(authenticated=True, email=user.email, role=role, display_name=display_name)
+    return MeOut(
+        authenticated=True,
+        email=user.email,
+        role=role,
+        display_name=display_name,
+        is_staff=user.is_staff,
+    )
 
 
 class SocialLinkIn(Schema):
