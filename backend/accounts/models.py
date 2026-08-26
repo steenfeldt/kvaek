@@ -144,11 +144,20 @@ class ProfilePhoto(models.Model):
 class BrandProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="brand_profile")
     company_name = models.CharField(max_length=200)
+    # Required for new signups (validated at the API); blank only on
+    # grandfathered/anonymized rows.
     cvr = models.CharField("CVR", max_length=8, blank=True)
     website = models.URLField(blank=True)
     city = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cvr"], condition=~models.Q(cvr=""), name="unique_cvr_when_set"
+            ),
+        ]
 
     def __str__(self):
         return self.company_name

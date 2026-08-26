@@ -205,7 +205,9 @@
     "passwordMismatch": "The passwords don't match.",
     "setPassword": "Set password",
     "changePassword": "Change password",
-    "passwordSaved": "Password saved."
+    "passwordSaved": "Password saved.",
+    "companyTitle": "Company details",
+    "companySaved": "Company details saved."
   },
   "reset": {
     "title": "Choose a new password",

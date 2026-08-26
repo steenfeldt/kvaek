@@ -59,10 +59,22 @@ class CreatorOnboardingIn(Schema):
 
 class BrandOnboardingIn(Schema):
     company_name: str
-    cvr: str = ""
+    cvr: str
     website: str = ""
     city: str = ""
     accept_terms: bool = False
+
+
+def _clean_cvr(cvr: str, exclude_profile_id: int | None = None) -> str:
+    cvr = cvr.strip().replace(" ", "")
+    if not (cvr.isdigit() and len(cvr) == 8):
+        raise HttpError(422, "CVR must be 8 digits")
+    qs = BrandProfile.objects.filter(cvr=cvr)
+    if exclude_profile_id is not None:
+        qs = qs.exclude(id=exclude_profile_id)
+    if qs.exists():
+        raise HttpError(409, "A brand with this CVR is already registered")
+    return cvr
 
 
 class OnboardingOut(Schema):
@@ -122,15 +134,57 @@ def onboard_creator(request, payload: CreatorOnboardingIn):
 @transaction.atomic
 def onboard_brand(request, payload: BrandOnboardingIn):
     _require_no_profile(request.user)
+    cvr = _clean_cvr(payload.cvr)
     _record_terms(request.user, payload.accept_terms)
     BrandProfile.objects.create(
         user=request.user,
         company_name=payload.company_name.strip(),
-        cvr=payload.cvr.strip(),
+        cvr=cvr,
         website=payload.website.strip(),
         city=payload.city.strip(),
     )
     return OnboardingOut(role="brand")
+
+
+class MyBrandOut(Schema):
+    company_name: str
+    cvr: str
+    website: str
+    city: str
+
+
+def _brand_or_403(request) -> BrandProfile:
+    brand = getattr(request.user, "brand_profile", None)
+    if brand is None:
+        raise HttpError(403, "Brand account required")
+    return brand
+
+
+@router.get("/me/brand", response=MyBrandOut, auth=django_auth)
+def my_brand(request):
+    return _brand_or_403(request)
+
+
+class BrandUpdateIn(Schema):
+    company_name: str | None = None
+    cvr: str | None = None
+    website: str | None = None
+    city: str | None = None
+
+
+@router.patch("/me/brand", response=MyBrandOut, auth=django_auth)
+def update_brand(request, payload: BrandUpdateIn):
+    brand = _brand_or_403(request)
+    if payload.cvr is not None:
+        brand.cvr = _clean_cvr(payload.cvr, exclude_profile_id=brand.id)
+    for field in ("company_name", "website", "city"):
+        value = getattr(payload, field)
+        if value is not None:
+            setattr(brand, field, value.strip())
+    if not brand.company_name:
+        raise HttpError(422, "Company name is required")
+    brand.save()
+    return brand
 
 
 class NicheOut(Schema):

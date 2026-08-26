@@ -127,9 +127,9 @@ async function submit() {
 
     <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.brand") }}</h1>
-      <UFormField :label="$t('onboarding.cvr')">
+      <UFormField :label="$t('onboarding.cvr')" required>
         <div class="flex gap-2">
-          <UInput v-model="brand.cvr" maxlength="8" class="flex-1" @blur="cvrLookup" />
+          <UInput v-model="brand.cvr" maxlength="8" required pattern="\d{8}" class="flex-1" @blur="cvrLookup" />
           <UButton variant="outline" color="neutral" @click="cvrLookup">{{ $t("onboarding.cvrLookup") }}</UButton>
         </div>
       </UFormField>

@@ -205,7 +205,9 @@
     "passwordMismatch": "Adgangskoderne er ikke ens.",
     "setPassword": "Opret adgangskode",
     "changePassword": "Skift adgangskode",
-    "passwordSaved": "Adgangskoden er gemt."
+    "passwordSaved": "Adgangskoden er gemt.",
+    "companyTitle": "Virksomhedsoplysninger",
+    "companySaved": "Virksomhedsoplysninger gemt."
   },
   "reset": {
     "title": "Vælg ny adgangskode",
