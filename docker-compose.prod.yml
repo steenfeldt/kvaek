@@ -1,0 +1,73 @@
+# Production/staging stack for kvaek.com. Run on the server with:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env.prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi -b 0.0.0.0:8000 --workers 2"
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set in .env.prod}
+      DJANGO_ALLOWED_HOSTS: kvaek.com,backend
+      FRONTEND_URL: https://kvaek.com
+      BACKEND_URL: https://kvaek.com
+      POSTGRES_HOST: db
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.resend.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-resend}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: "1"
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-Kvæk <noreply@kvaek.com>}
+      MOLLIE_API_KEY: ${MOLLIE_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - static:/app/staticfiles
+      - media:/app/media
+      - private_media:/app/private_media
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static:/staticfiles:ro
+      - media:/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  static:
+  media:
+  private_media:
+  caddy_data:
+  caddy_config:

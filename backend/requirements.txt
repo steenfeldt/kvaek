@@ -5,3 +5,4 @@ psycopg[binary]>=3.2
 Pillow>=11.0
 mollie-api-python>=3.7
 requests>=2.32
+gunicorn>=23.0
