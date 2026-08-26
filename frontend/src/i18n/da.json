@@ -16,7 +16,11 @@
     "login": "Log ind",
     "signup": "Opret konto",
     "noCodeLogin": "Ingen kode i indbakken? Måske har du ikke en konto endnu —",
-    "noCodeSignup": "Ingen kode i indbakken? Måske har du allerede en konto —"
+    "noCodeSignup": "Ingen kode i indbakken? Måske har du allerede en konto —",
+    "asCreator": "som skaber",
+    "asBrand": "som virksomhed",
+    "newHere": "Ny her?",
+    "getStarted": "Se hvordan det virker"
   },
   "onboarding": {
     "choose": "Hvem er du?",

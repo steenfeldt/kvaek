@@ -16,7 +16,11 @@
     "login": "Log in",
     "signup": "Sign up",
     "noCodeLogin": "No code in your inbox? You may not have an account yet —",
-    "noCodeSignup": "No code in your inbox? You may already have an account —"
+    "noCodeSignup": "No code in your inbox? You may already have an account —",
+    "asCreator": "as a creator",
+    "asBrand": "as a business",
+    "newHere": "New here?",
+    "getStarted": "See how it works"
   },
   "onboarding": {
     "choose": "Who are you?",
