@@ -31,6 +31,11 @@ is ticked on their profile (admin, after moderation).
 With `MOLLIE_API_KEY` empty (dev), campaign checkout simulates an instant paid
 payment and activates the campaign, so the full flow is testable offline.
 
+**Seed data**: `docker compose exec backend python manage.py seed_creators
+--count 25` fills the deck with fake Danish creators (photos, niches, bios,
+follower counts); `--clear` removes them again (they live on `@seed.invalid`
+emails).
+
 ## Tests
 
 ```bash
