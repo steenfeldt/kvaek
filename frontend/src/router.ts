@@ -3,6 +3,8 @@ import { useSession } from "./stores/session";
 
 const routes = [
   { path: "/", component: () => import("./pages/Landing.vue") },
+  { path: "/brands", component: () => import("./pages/BrandLanding.vue") },
+  { path: "/creators", component: () => import("./pages/CreatorLanding.vue") },
   { path: "/auth", component: () => import("./pages/Auth.vue") },
   { path: "/onboarding", component: () => import("./pages/Onboarding.vue"), meta: { auth: true } },
   { path: "/deck", component: () => import("./pages/Deck.vue"), meta: { auth: true, role: "brand" } },
@@ -40,5 +42,6 @@ router.beforeEach(async (to) => {
   if (to.meta.auth && !session.role && to.path !== "/onboarding") return "/onboarding";
   if (to.meta.role && session.role && session.role !== to.meta.role) return session.postLoginRoute();
   // Authenticated users don't need the landing/auth pages.
-  if ((to.path === "/" || to.path === "/auth") && session.authenticated) return session.postLoginRoute();
+  if (["/", "/brands", "/creators", "/auth"].includes(to.path) && session.authenticated)
+    return session.postLoginRoute();
 });

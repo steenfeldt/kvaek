@@ -132,5 +132,32 @@
     "listed": "Din profil er synlig for brands",
     "notListed": "Din profil er endnu ikke synlig — den gennemgås af os",
     "verified": "Verificeret"
+  },
+  "forBrands": {
+    "title": "Find skabere, dit publikum kender",
+    "sub": "Swipe gennem danske nano- og mikroskabere, gem dine favoritter privat, og betal kun når du vil række ud.",
+    "step1t": "Swipe og gem",
+    "step1d": "Byg din shortlist af skabere, der passer til dit brand — helt gratis.",
+    "step2t": "Opret en kampagne",
+    "step2d": "Betal pr. kampagne — intet abonnement, ingen binding.",
+    "step3t": "Send briefs og luk aftalen",
+    "step3d": "Forhandl prisen i op til tre runder, og chat når aftalen er på plads.",
+    "pricing": "Priser",
+    "vat": "Alle priser er ekskl. moms.",
+    "cta": "Opret virksomhedskonto",
+    "creatorInstead": "Er du skaber? Se hvordan det virker for dig"
+  },
+  "forCreators": {
+    "title": "Bliv opdaget af danske brands",
+    "sub": "Gratis for skabere. Lav din profil én gang — brands swiper, gemmer dig og rækker ud med konkrete opgaver.",
+    "step1t": "Lav din profil",
+    "step1d": "Billeder, din niche og dine kanaler. Det tager under tre minutter.",
+    "step2t": "Bliv gemt af brands",
+    "step2d": "Brands gemmer dig privat på deres lister. Du ser kun tal — ingen spam i indbakken.",
+    "step3t": "Modtag briefs og tjen penge",
+    "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
+    "beta": "Betaen er kun med invitation — har du fået en kode, kan du oprette din profil nu.",
+    "cta": "Opret skaberprofil",
+    "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer"
   }
 }

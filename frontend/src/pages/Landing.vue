@@ -4,8 +4,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 function go(role: "brand" | "creator") {
-  sessionStorage.setItem("signup-intent", role);
-  router.push("/auth");
+  router.push(role === "brand" ? "/brands" : "/creators");
 }
 
 function login() {

@@ -132,5 +132,32 @@
     "listed": "Your profile is visible to brands",
     "notListed": "Your profile isn't visible yet — it's under review",
     "verified": "Verified"
+  },
+  "forBrands": {
+    "title": "Find creators your audience knows",
+    "sub": "Swipe through Danish nano and micro creators, save favorites privately, and pay only when you want to reach out.",
+    "step1t": "Swipe and save",
+    "step1d": "Build your shortlist of creators that fit your brand — completely free.",
+    "step2t": "Create a campaign",
+    "step2d": "Pay per campaign — no subscription, no lock-in.",
+    "step3t": "Send briefs and close the deal",
+    "step3d": "Negotiate the price in up to three rounds, and chat once the deal is made.",
+    "pricing": "Pricing",
+    "vat": "All prices excl. VAT.",
+    "cta": "Create business account",
+    "creatorInstead": "Are you a creator? See how it works for you"
+  },
+  "forCreators": {
+    "title": "Get discovered by Danish brands",
+    "sub": "Free for creators. Build your profile once — brands swipe, save you, and reach out with real briefs.",
+    "step1t": "Build your profile",
+    "step1d": "Photos, your niche, and your channels. Takes under three minutes.",
+    "step2t": "Get saved by brands",
+    "step2d": "Brands save you privately to their lists. You only see counts — no inbox spam.",
+    "step3t": "Receive briefs and earn",
+    "step3d": "You set your own price in the negotiation. No commission.",
+    "beta": "The beta is invite-only — if you have a code, you can create your profile now.",
+    "cta": "Create creator profile",
+    "brandInstead": "Are you a business? See how it works for you"
   }
 }
