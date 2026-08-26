@@ -59,7 +59,7 @@ async function submit() {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-10">
+  <main class="mx-auto flex max-w-md flex-col gap-6 px-6 pt-12 pb-10 sm:pt-16">
     <template v-if="!role">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.choose") }}</h1>
       <div class="grid gap-3">

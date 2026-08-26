@@ -64,7 +64,7 @@ function switchMode(to?: string) {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-6">
+  <main class="mx-auto flex max-w-sm flex-col gap-6 px-6 pt-16 pb-10 sm:pt-24">
     <img src="/logo.png" alt="" class="mx-auto h-20 w-20" />
 
     <div class="flex rounded-xl border border-clay-200 bg-white p-1 text-sm font-medium">

@@ -11,7 +11,7 @@ const { data } = useQuery({
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center gap-6 px-6 text-center">
+  <main class="mx-auto flex max-w-md flex-col gap-6 px-6 pt-12 text-center">
     <h1 class="text-2xl font-semibold">{{ session.me?.display_name }}</h1>
     <UCard v-if="data">
       <p class="text-lg">{{ $t("creatorHome.savedCount", { count: data.saved_last_7_days }) }}</p>

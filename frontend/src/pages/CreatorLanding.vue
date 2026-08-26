@@ -10,7 +10,7 @@ function signup() {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-10 px-6 py-14">
+  <main class="mx-auto flex max-w-2xl flex-col gap-10 px-6 pt-12 pb-14 sm:pt-16">
     <header class="flex flex-col items-center gap-4 text-center">
       <img src="/logo.png" alt="" class="h-20 w-20" />
       <h1 class="text-3xl font-semibold tracking-tight">{{ $t("forCreators.title") }}</h1>
