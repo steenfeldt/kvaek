@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Light-only for now: Nuxt UI follows the system scheme via light-dark(),
+   while our own sections are hardcoded light — forcing light keeps them in
+   sync. Revisit if a real dark theme is ever designed. */
+:root {
+  color-scheme: light;
+}
+
 /* Own design system — warm/editorial. Clay is the brand ramp (from the logo),
    ink the warm text colors, cream the page ground. */
 @theme {
