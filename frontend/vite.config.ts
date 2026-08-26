@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [
     vue(),
     ui({
+      // Light-only for now: without this, Nuxt UI syncs a `dark` class with
+      // the system scheme and our light-only design breaks.
+      colorMode: false,
       ui: {
         colors: {
           primary: "clay",
