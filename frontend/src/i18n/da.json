@@ -4,7 +4,8 @@
     "brandCta": "Find skabere",
     "creatorCta": "Bliv skaber",
     "brandSub": "Swipe gennem danske nano- og mikroskabere. Betal kun pr. kampagne.",
-    "creatorSub": "Gratis for skabere. Kun invitation i beta."
+    "creatorSub": "Gratis for skabere. Kun invitation i beta.",
+    "haveAccount": "Har du allerede en konto?"
   },
   "auth": {
     "emailLabel": "Din e-mail",

@@ -4,7 +4,8 @@
     "brandCta": "Find creators",
     "creatorCta": "Join as creator",
     "brandSub": "Swipe through Danish nano and micro creators. Pay per campaign only.",
-    "creatorSub": "Free for creators. Invite-only during beta."
+    "creatorSub": "Free for creators. Invite-only during beta.",
+    "haveAccount": "Already have an account?"
   },
   "auth": {
     "emailLabel": "Your email",

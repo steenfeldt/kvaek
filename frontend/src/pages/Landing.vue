@@ -7,6 +7,11 @@ function go(role: "brand" | "creator") {
   sessionStorage.setItem("signup-intent", role);
   router.push("/auth");
 }
+
+function login() {
+  sessionStorage.removeItem("signup-intent");
+  router.push("/auth");
+}
 </script>
 
 <template>
@@ -29,5 +34,9 @@ function go(role: "brand" | "creator") {
         <span class="mt-2 block text-sm text-ink-600">{{ $t("landing.creatorSub") }}</span>
       </button>
     </div>
+    <p class="text-sm text-ink-600">
+      {{ $t("landing.haveAccount") }}
+      <button class="font-medium text-clay-700 underline" @click="login">{{ $t("auth.login") }}</button>
+    </p>
   </main>
 </template>
