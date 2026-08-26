@@ -1,0 +1,24 @@
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.http import JsonResponse
+from django.urls import include, path
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+from .api import api
+
+
+@ensure_csrf_cookie
+def csrf(request):
+    return JsonResponse({"ok": True})
+
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("_allauth/", include("allauth.headless.urls")),
+    path("api/csrf", csrf),
+    path("api/", api.urls),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

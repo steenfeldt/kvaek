@@ -1,0 +1,28 @@
+import { createRouter, createWebHistory } from "vue-router";
+import { useSession } from "./stores/session";
+
+const routes = [
+  { path: "/", component: () => import("./pages/Landing.vue") },
+  { path: "/auth", component: () => import("./pages/Auth.vue") },
+  { path: "/onboarding", component: () => import("./pages/Onboarding.vue"), meta: { auth: true } },
+  { path: "/deck", component: () => import("./pages/Deck.vue"), meta: { auth: true, role: "brand" } },
+  { path: "/home", component: () => import("./pages/CreatorHome.vue"), meta: { auth: true, role: "creator" } },
+];
+
+export const router = createRouter({ history: createWebHistory(), routes });
+
+router.beforeEach(async (to) => {
+  const session = useSession();
+  if (!session.loaded) {
+    try {
+      await session.refresh();
+    } catch {
+      session.loaded = true;
+    }
+  }
+  if (to.meta.auth && !session.authenticated) return "/auth";
+  if (to.meta.auth && !session.role && to.path !== "/onboarding") return "/onboarding";
+  if (to.meta.role && session.role && session.role !== to.meta.role) return session.postLoginRoute();
+  // Authenticated users don't need the landing/auth pages.
+  if ((to.path === "/" || to.path === "/auth") && session.authenticated) return session.postLoginRoute();
+});

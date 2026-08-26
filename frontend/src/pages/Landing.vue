@@ -1,0 +1,32 @@
+<script setup lang="ts">
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+function go(role: "brand" | "creator") {
+  sessionStorage.setItem("signup-intent", role);
+  router.push("/auth");
+}
+</script>
+
+<template>
+  <main class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-10 px-6 text-center">
+    <h1 class="text-4xl font-semibold tracking-tight">{{ $t("landing.tagline") }}</h1>
+    <div class="grid w-full gap-4 sm:grid-cols-2">
+      <button
+        class="rounded-2xl bg-clay-600 p-6 text-left text-white transition hover:bg-clay-700"
+        @click="go('brand')"
+      >
+        <span class="block text-xl font-semibold">{{ $t("landing.brandCta") }}</span>
+        <span class="mt-2 block text-sm opacity-80">{{ $t("landing.brandSub") }}</span>
+      </button>
+      <button
+        class="rounded-2xl border-2 border-clay-200 bg-white p-6 text-left transition hover:border-clay-500"
+        @click="go('creator')"
+      >
+        <span class="block text-xl font-semibold">{{ $t("landing.creatorCta") }}</span>
+        <span class="mt-2 block text-sm text-ink-600">{{ $t("landing.creatorSub") }}</span>
+      </button>
+    </div>
+  </main>
+</template>

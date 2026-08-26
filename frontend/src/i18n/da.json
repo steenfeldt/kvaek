@@ -1,0 +1,41 @@
+{
+  "landing": {
+    "tagline": "Danske brands og skabere, der finder hinanden.",
+    "brandCta": "Find skabere",
+    "creatorCta": "Bliv skaber",
+    "brandSub": "Swipe gennem danske nano- og mikroskabere. Betal kun pr. kampagne.",
+    "creatorSub": "Gratis for skabere. Kun invitation i beta."
+  },
+  "auth": {
+    "title": "Log ind eller opret konto",
+    "emailLabel": "Din e-mail",
+    "sendCode": "Send kode",
+    "codeLabel": "Indtast koden fra din e-mail",
+    "confirm": "Bekræft",
+    "sentTo": "Vi har sendt en kode til {email}"
+  },
+  "onboarding": {
+    "choose": "Hvem er du?",
+    "creator": "Jeg er skaber",
+    "brand": "Jeg er en virksomhed",
+    "inviteCode": "Invitationskode",
+    "displayName": "Navn",
+    "city": "By",
+    "bio": "Kort om dig",
+    "companyName": "Virksomhedsnavn",
+    "cvr": "CVR-nummer",
+    "cvrLookup": "Slå op",
+    "website": "Hjemmeside",
+    "submit": "Kom i gang"
+  },
+  "deck": {
+    "empty": "Ikke flere profiler lige nu — kom tilbage senere.",
+    "like": "Gem",
+    "pass": "Videre",
+    "followers": "følgere"
+  },
+  "creatorHome": {
+    "savedCount": "{count} brands har gemt dig den seneste uge",
+    "notListed": "Din profil er ikke synlig endnu — udfyld profil og afvent godkendelse."
+  }
+}

@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Own design system — warm/editorial direction, first pass. */
+@theme {
+  --color-clay-50: #faf5f0;
+  --color-clay-100: #f4e8dd;
+  --color-clay-200: #e8d0bc;
+  --color-clay-500: #c96f4a;
+  --color-clay-600: #b25532;
+  --color-clay-700: #93432a;
+  --color-ink-900: #2b2118;
+  --color-ink-600: #6b5d4f;
+  --color-cream: #fdfaf6;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink-900);
+}

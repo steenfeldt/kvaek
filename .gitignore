@@ -1,0 +1,15 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+backend/media/
+backend/staticfiles/
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+
+# env & editor
+.env
+.DS_Store

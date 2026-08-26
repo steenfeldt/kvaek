@@ -1,0 +1,41 @@
+{
+  "landing": {
+    "tagline": "Danish brands and creators, finding each other.",
+    "brandCta": "Find creators",
+    "creatorCta": "Join as creator",
+    "brandSub": "Swipe through Danish nano and micro creators. Pay per campaign only.",
+    "creatorSub": "Free for creators. Invite-only during beta."
+  },
+  "auth": {
+    "title": "Log in or sign up",
+    "emailLabel": "Your email",
+    "sendCode": "Send code",
+    "codeLabel": "Enter the code from your email",
+    "confirm": "Confirm",
+    "sentTo": "We sent a code to {email}"
+  },
+  "onboarding": {
+    "choose": "Who are you?",
+    "creator": "I'm a creator",
+    "brand": "I'm a business",
+    "inviteCode": "Invite code",
+    "displayName": "Name",
+    "city": "City",
+    "bio": "Short bio",
+    "companyName": "Company name",
+    "cvr": "CVR number",
+    "cvrLookup": "Look up",
+    "website": "Website",
+    "submit": "Get started"
+  },
+  "deck": {
+    "empty": "No more profiles right now — check back later.",
+    "like": "Save",
+    "pass": "Pass",
+    "followers": "followers"
+  },
+  "creatorHome": {
+    "savedCount": "{count} brands saved you in the last week",
+    "notListed": "Your profile isn't visible yet — complete it and await approval."
+  }
+}
