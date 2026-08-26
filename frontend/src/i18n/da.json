@@ -28,6 +28,15 @@
     "website": "Hjemmeside",
     "submit": "Kom i gang"
   },
+  "nav": {
+    "deck": "Swipe",
+    "campaigns": "Kampagner",
+    "briefs": "Briefs",
+    "deals": "Aftaler",
+    "home": "Hjem",
+    "profile": "Profil",
+    "logout": "Log ud"
+  },
   "deck": {
     "empty": "Ikke flere profiler lige nu — kom tilbage senere.",
     "like": "Gem",
@@ -37,5 +46,87 @@
   "creatorHome": {
     "savedCount": "{count} brands har gemt dig den seneste uge",
     "notListed": "Din profil er ikke synlig endnu — udfyld profil og afvent godkendelse."
+  },
+  "status": {
+    "draft": "Kladde",
+    "active": "Aktiv",
+    "completed": "Afsluttet",
+    "cancelled": "Annulleret",
+    "sent": "Sendt",
+    "declined": "Afvist",
+    "negotiating": "Forhandles",
+    "accepted": "Accepteret",
+    "closed": "Lukket"
+  },
+  "campaigns": {
+    "title": "Kampagner",
+    "new": "Ny kampagne",
+    "name": "Kampagnenavn",
+    "description": "Beskrivelse — hvad skal skaberne lave?",
+    "create": "Opret kampagne",
+    "briefsIncluded": "{count} briefs",
+    "payActivate": "Betal og aktivér",
+    "briefsUsed": "{used} af {total} briefs brugt",
+    "empty": "Ingen kampagner endnu — opret din første ovenfor.",
+    "sendBriefs": "Send briefs til gemte skabere",
+    "briefMessage": "Din besked til skaberen — hvad går samarbejdet ud på?",
+    "send": "Send brief",
+    "briefSent": "Brief sendt",
+    "noShortlisted": "Ingen gemte skabere endnu — swipe og gem nogen først.",
+    "briefsList": "Sendte briefs"
+  },
+  "payment": {
+    "waiting": "Bekræfter din betaling…",
+    "success": "Betaling gennemført — kampagnen er aktiv!",
+    "failed": "Betalingen blev ikke gennemført.",
+    "toCampaign": "Gå til kampagnen",
+    "retry": "Prøv igen"
+  },
+  "briefs": {
+    "title": "Briefs",
+    "empty": "Ingen briefs endnu.",
+    "from": "Fra {name}",
+    "to": "Til {name}"
+  },
+  "brief": {
+    "negotiation": "Forhandling",
+    "round": "Runde {round} af 3",
+    "amountKr": "Beløb (kr)",
+    "proposalMessage": "Besked / vilkår",
+    "submitProposal": "Send forslag",
+    "accept": "Acceptér {amount}",
+    "decline": "Afvis",
+    "waiting": "Afventer modparten…",
+    "goToChat": "Gå til chat",
+    "youAre": "Du forhandler som {side}",
+    "creator": "skaber",
+    "brand": "virksomhed"
+  },
+  "deals": {
+    "title": "Aftaler",
+    "empty": "Ingen aftaler endnu.",
+    "agreed": "Aftalt: {amount}"
+  },
+  "chat": {
+    "placeholder": "Skriv en besked…",
+    "send": "Send",
+    "markComplete": "Markér som gennemført",
+    "completedByYou": "Du har markeret som gennemført",
+    "completedByOther": "Modparten har markeret som gennemført",
+    "completedBoth": "Aftalen er gennemført",
+    "review": "Giv en anmeldelse",
+    "reviewText": "Hvordan var samarbejdet?",
+    "submitReview": "Send anmeldelse",
+    "reviewed": "Tak for din anmeldelse!"
+  },
+  "profile": {
+    "title": "Din profil",
+    "photos": "Billeder",
+    "addPhoto": "Tilføj billede",
+    "save": "Gem ændringer",
+    "saved": "Gemt",
+    "listed": "Din profil er synlig for brands",
+    "notListed": "Din profil er endnu ikke synlig — den gennemgås af os",
+    "verified": "Verificeret"
   }
 }

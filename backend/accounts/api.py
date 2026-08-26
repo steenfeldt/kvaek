@@ -1,10 +1,11 @@
 from django.db import transaction
 from django.utils import timezone
-from ninja import Router, Schema
+from ninja import File, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
-from .models import BrandProfile, CreatorProfile, InviteCode, NicheTag, SocialLink
+from .models import BrandProfile, CreatorProfile, InviteCode, NicheTag, ProfilePhoto, SocialLink
+from .services import process_profile_image
 
 router = Router(tags=["accounts"])
 
@@ -118,3 +119,108 @@ class NicheOut(Schema):
 @router.get("/niches", response=list[NicheOut], auth=None)
 def niches(request):
     return NicheTag.objects.all().order_by("name")
+
+
+def _creator_or_403(request) -> CreatorProfile:
+    creator = getattr(request.user, "creator_profile", None)
+    if creator is None:
+        raise HttpError(403, "Creator account required")
+    return creator
+
+
+class PhotoOut(Schema):
+    id: int
+    url: str
+
+
+class SocialLinkOut(Schema):
+    platform: str
+    handle: str
+    follower_count: int
+    verified: bool
+
+
+class MyProfileOut(Schema):
+    display_name: str
+    city: str
+    bio: str
+    listed: bool
+    verified: bool
+    niches: list[str]
+    social_links: list[SocialLinkOut]
+    photos: list[PhotoOut]
+
+
+def _my_profile(profile: CreatorProfile) -> MyProfileOut:
+    return MyProfileOut(
+        display_name=profile.display_name,
+        city=profile.city,
+        bio=profile.bio,
+        listed=profile.listed,
+        verified=profile.verified,
+        niches=[t.name for t in profile.niches.all()],
+        social_links=[
+            SocialLinkOut(
+                platform=s.platform,
+                handle=s.handle,
+                follower_count=s.follower_count,
+                verified=s.verified_at is not None,
+            )
+            for s in profile.social_links.all()
+        ],
+        photos=[PhotoOut(id=p.id, url=p.image.url) for p in profile.photos.all()],
+    )
+
+
+@router.get("/me/profile", response=MyProfileOut, auth=django_auth)
+def my_profile(request):
+    return _my_profile(_creator_or_403(request))
+
+
+class ProfileUpdateIn(Schema):
+    display_name: str | None = None
+    city: str | None = None
+    bio: str | None = None
+
+
+@router.patch("/me/profile", response=MyProfileOut, auth=django_auth)
+def update_profile(request, payload: ProfileUpdateIn):
+    profile = _creator_or_403(request)
+    for field in ("display_name", "city", "bio"):
+        value = getattr(payload, field)
+        if value is not None:
+            setattr(profile, field, value.strip())
+    profile.save()
+    return _my_profile(profile)
+
+
+MAX_PHOTOS = 6
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+
+
+@router.post("/me/photos", response=PhotoOut, auth=django_auth)
+def upload_photo(request, file: File[UploadedFile]):
+    profile = _creator_or_403(request)
+    if profile.photos.count() >= MAX_PHOTOS:
+        raise HttpError(409, f"Maximum {MAX_PHOTOS} photos")
+    if file.size > MAX_UPLOAD_BYTES:
+        raise HttpError(413, "File too large")
+    try:
+        image = process_profile_image(file)
+    except Exception:
+        raise HttpError(422, "Not a valid image")
+    photo = ProfilePhoto.objects.create(
+        profile=profile, image=image, sort_order=profile.photos.count()
+    )
+    return PhotoOut(id=photo.id, url=photo.image.url)
+
+
+@router.delete("/me/photos/{photo_id}", auth=django_auth)
+def delete_photo(request, photo_id: int):
+    profile = _creator_or_403(request)
+    photo = profile.photos.filter(id=photo_id).first()
+    if photo is None:
+        raise HttpError(404, "Photo not found")
+    photo.image.delete(save=False)
+    photo.delete()
+    return {"ok": True}

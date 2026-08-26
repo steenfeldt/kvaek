@@ -34,6 +34,28 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
   return res.json();
 }
 
+/** Multipart upload (photos) — browser sets the Content-Type boundary itself. */
+export async function apiUpload<T = unknown>(path: string, file: globalThis.File): Promise<T> {
+  await ensureCsrf();
+  const token = getCookie("csrftoken");
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`/api${path}`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: token ? { "X-CSRFToken": token } : {},
+    body: form,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {}
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
 /** allauth headless endpoints return meaningful bodies on non-2xx too. */
 export async function allauth(
   method: string,

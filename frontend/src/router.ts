@@ -6,7 +6,23 @@ const routes = [
   { path: "/auth", component: () => import("./pages/Auth.vue") },
   { path: "/onboarding", component: () => import("./pages/Onboarding.vue"), meta: { auth: true } },
   { path: "/deck", component: () => import("./pages/Deck.vue"), meta: { auth: true, role: "brand" } },
+  { path: "/campaigns", component: () => import("./pages/Campaigns.vue"), meta: { auth: true, role: "brand" } },
+  {
+    path: "/campaigns/:id",
+    component: () => import("./pages/CampaignDetail.vue"),
+    meta: { auth: true, role: "brand" },
+  },
+  {
+    path: "/campaigns/:id/payment-return",
+    component: () => import("./pages/PaymentReturn.vue"),
+    meta: { auth: true, role: "brand" },
+  },
   { path: "/home", component: () => import("./pages/CreatorHome.vue"), meta: { auth: true, role: "creator" } },
+  { path: "/profile", component: () => import("./pages/Profile.vue"), meta: { auth: true, role: "creator" } },
+  { path: "/briefs", component: () => import("./pages/Briefs.vue"), meta: { auth: true } },
+  { path: "/briefs/:id", component: () => import("./pages/BriefDetail.vue"), meta: { auth: true } },
+  { path: "/deals", component: () => import("./pages/Deals.vue"), meta: { auth: true } },
+  { path: "/deals/:id", component: () => import("./pages/DealChat.vue"), meta: { auth: true } },
 ];
 
 export const router = createRouter({ history: createWebHistory(), routes });

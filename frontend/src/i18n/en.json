@@ -28,6 +28,15 @@
     "website": "Website",
     "submit": "Get started"
   },
+  "nav": {
+    "deck": "Swipe",
+    "campaigns": "Campaigns",
+    "briefs": "Briefs",
+    "deals": "Deals",
+    "home": "Home",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
   "deck": {
     "empty": "No more profiles right now — check back later.",
     "like": "Save",
@@ -37,5 +46,87 @@
   "creatorHome": {
     "savedCount": "{count} brands saved you in the last week",
     "notListed": "Your profile isn't visible yet — complete it and await approval."
+  },
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "sent": "Sent",
+    "declined": "Declined",
+    "negotiating": "Negotiating",
+    "accepted": "Accepted",
+    "closed": "Closed"
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "new": "New campaign",
+    "name": "Campaign name",
+    "description": "Description — what should creators do?",
+    "create": "Create campaign",
+    "briefsIncluded": "{count} briefs",
+    "payActivate": "Pay & activate",
+    "briefsUsed": "{used} of {total} briefs used",
+    "empty": "No campaigns yet — create your first above.",
+    "sendBriefs": "Send briefs to saved creators",
+    "briefMessage": "Your message to the creator — what's the collaboration?",
+    "send": "Send brief",
+    "briefSent": "Brief sent",
+    "noShortlisted": "No saved creators yet — swipe and save some first.",
+    "briefsList": "Sent briefs"
+  },
+  "payment": {
+    "waiting": "Confirming your payment…",
+    "success": "Payment complete — the campaign is active!",
+    "failed": "The payment didn't go through.",
+    "toCampaign": "Go to campaign",
+    "retry": "Try again"
+  },
+  "briefs": {
+    "title": "Briefs",
+    "empty": "No briefs yet.",
+    "from": "From {name}",
+    "to": "To {name}"
+  },
+  "brief": {
+    "negotiation": "Negotiation",
+    "round": "Round {round} of 3",
+    "amountKr": "Amount (kr)",
+    "proposalMessage": "Message / terms",
+    "submitProposal": "Send proposal",
+    "accept": "Accept {amount}",
+    "decline": "Decline",
+    "waiting": "Waiting for the other party…",
+    "goToChat": "Go to chat",
+    "youAre": "You negotiate as {side}",
+    "creator": "creator",
+    "brand": "business"
+  },
+  "deals": {
+    "title": "Deals",
+    "empty": "No deals yet.",
+    "agreed": "Agreed: {amount}"
+  },
+  "chat": {
+    "placeholder": "Write a message…",
+    "send": "Send",
+    "markComplete": "Mark as completed",
+    "completedByYou": "You marked this completed",
+    "completedByOther": "The other party marked this completed",
+    "completedBoth": "This deal is completed",
+    "review": "Leave a review",
+    "reviewText": "How was the collaboration?",
+    "submitReview": "Submit review",
+    "reviewed": "Thanks for your review!"
+  },
+  "profile": {
+    "title": "Your profile",
+    "photos": "Photos",
+    "addPhoto": "Add photo",
+    "save": "Save changes",
+    "saved": "Saved",
+    "listed": "Your profile is visible to brands",
+    "notListed": "Your profile isn't visible yet — it's under review",
+    "verified": "Verified"
   }
 }

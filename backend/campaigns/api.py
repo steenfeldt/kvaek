@@ -77,6 +77,42 @@ def list_campaigns(request):
     return brand.campaigns.all().order_by("-created_at")
 
 
+class CampaignDetailOut(CampaignOut):
+    briefs: list["BriefOut"]
+
+
+@router.get("/campaigns/{campaign_id}", response=CampaignDetailOut)
+def campaign_detail(request, campaign_id: int):
+    brand = _brand_or_403(request)
+    campaign = brand.campaigns.filter(id=campaign_id).first()
+    if campaign is None:
+        raise HttpError(404, "Campaign not found")
+    if campaign.status == Campaign.Status.DRAFT:
+        # Return-page polling path: reconcile any pending Mollie payment so the
+        # campaign activates even if the webhook can't reach us (e.g. local dev).
+        from billing.models import Payment
+        from billing.services import reconcile_payment
+
+        pending = campaign.payments.filter(
+            status=Payment.Status.OPEN, mollie_payment_id__isnull=False
+        )
+        for payment in pending:
+            reconcile_payment(payment.mollie_payment_id)
+        campaign.refresh_from_db()
+    briefs = campaign.briefs.select_related("campaign", "creator").order_by("-created_at")
+    return CampaignDetailOut(
+        id=campaign.id,
+        name=campaign.name,
+        description=campaign.description,
+        tier=campaign.tier,
+        status=campaign.status,
+        briefs_total=campaign.briefs_total,
+        briefs_used=campaign.briefs_used,
+        created_at=campaign.created_at,
+        briefs=[_brief_out(b) for b in briefs],
+    )
+
+
 class BriefIn(Schema):
     creator_id: int
     message: str
@@ -88,6 +124,7 @@ class BriefOut(Schema):
     creator_id: int
     creator_name: str
     campaign_name: str
+    brand_name: str
     message: str
     status: str
     created_at: datetime
@@ -100,6 +137,7 @@ def _brief_out(b: Brief) -> BriefOut:
         creator_id=b.creator_id,
         creator_name=b.creator.display_name,
         campaign_name=b.campaign.name,
+        brand_name=b.campaign.brand.company_name,
         message=b.message,
         status=b.status,
         created_at=b.created_at,
@@ -156,6 +194,39 @@ def _get_brief_for_user(request, brief_id: int) -> tuple[Brief, str]:
     raise HttpError(404, "Brief not found")
 
 
+from .services import ROUND_AUTHOR
+
+
+class BriefDetailOut(BriefOut):
+    my_side: str
+    proposals: list[ProposalOut]
+    can_propose: bool
+    can_accept: bool
+    can_decline: bool
+    deal_id: int | None = None
+
+
+@router.get("/briefs/{brief_id}", response=BriefDetailOut)
+def brief_detail(request, brief_id: int):
+    brief, side = _get_brief_for_user(request, brief_id)
+    proposals = list(brief.proposals.all())
+    negotiable = brief.status in (Brief.Status.SENT, Brief.Status.NEGOTIATING)
+    next_round = len(proposals) + 1
+    open_proposal = next((p for p in proposals if p.status == Proposal.Status.OPEN), None)
+    base = _brief_out(brief)
+    return BriefDetailOut(
+        **base.dict(),
+        my_side=side,
+        proposals=proposals,
+        can_propose=negotiable and next_round <= Proposal.MAX_ROUNDS and ROUND_AUTHOR[next_round] == side,
+        can_accept=brief.status == Brief.Status.NEGOTIATING
+        and open_proposal is not None
+        and open_proposal.author != side,
+        can_decline=negotiable,
+        deal_id=getattr(getattr(brief, "deal", None), "id", None),
+    )
+
+
 @router.get("/briefs/{brief_id}/proposals", response=list[ProposalOut])
 def list_proposals(request, brief_id: int):
     brief, _ = _get_brief_for_user(request, brief_id)
@@ -177,16 +248,58 @@ def decline_brief(request, brief_id: int):
 class DealOut(Schema):
     id: int
     brief_id: int
+    campaign_name: str
+    counterpart_name: str
+    my_side: str
     agreed_amount_ore: int
     agreed_terms: str
     created_at: datetime
     completed: bool
+    completed_by_me: bool
+    completed_by_other: bool
+    reviewed_by_me: bool
+
+
+def _deal_side(deal: Deal, user) -> str:
+    if getattr(user, "brand_profile", None) == deal.brief.campaign.brand:
+        return "brand"
+    if getattr(user, "creator_profile", None) == deal.brief.creator:
+        return "creator"
+    raise HttpError(404, "Deal not found")
+
+
+def _deal_out(deal: Deal, user) -> DealOut:
+    side = _deal_side(deal, user)
+    if side == "brand":
+        counterpart = deal.brief.creator.display_name
+        mine, other = deal.brand_completed_at, deal.creator_completed_at
+    else:
+        counterpart = deal.brief.campaign.brand.company_name
+        mine, other = deal.creator_completed_at, deal.brand_completed_at
+    return DealOut(
+        id=deal.id,
+        brief_id=deal.brief_id,
+        campaign_name=deal.brief.campaign.name,
+        counterpart_name=counterpart,
+        my_side=side,
+        agreed_amount_ore=deal.agreed_amount_ore,
+        agreed_terms=deal.agreed_terms,
+        created_at=deal.created_at,
+        completed=deal.completed,
+        completed_by_me=mine is not None,
+        completed_by_other=other is not None,
+        reviewed_by_me=deal.reviews.filter(author=user).exists(),
+    )
+
+
+DEAL_RELATED = ("brief__campaign__brand", "brief__creator")
 
 
 @router.post("/briefs/{brief_id}/accept", response=DealOut)
 def accept_proposal(request, brief_id: int):
     brief, side = _get_brief_for_user(request, brief_id)
-    return _domain(services.accept_proposal, brief, side)
+    deal = _domain(services.accept_proposal, brief, side)
+    return _deal_out(Deal.objects.select_related(*DEAL_RELATED).get(pk=deal.pk), request.user)
 
 
 @router.get("/deals", response=list[DealOut])
@@ -196,18 +309,26 @@ def my_deals(request):
     else:
         creator = _creator_or_403(request)
         deals = Deal.objects.filter(brief__creator=creator)
-    return deals.order_by("-created_at")
+    return [_deal_out(d, request.user) for d in deals.select_related(*DEAL_RELATED).order_by("-created_at")]
+
+
+def _get_deal_for_user(request, deal_id: int) -> Deal:
+    deal = Deal.objects.select_related(*DEAL_RELATED).filter(id=deal_id).first()
+    if deal is None:
+        raise HttpError(404, "Deal not found")
+    _deal_side(deal, request.user)
+    return deal
+
+
+@router.get("/deals/{deal_id}", response=DealOut)
+def deal_detail(request, deal_id: int):
+    return _deal_out(_get_deal_for_user(request, deal_id), request.user)
 
 
 @router.post("/deals/{deal_id}/complete", response=DealOut)
 def complete_deal(request, deal_id: int):
-    deal = Deal.objects.select_related("brief__campaign__brand", "brief__creator").filter(id=deal_id).first()
-    if deal is None:
-        raise HttpError(404, "Deal not found")
-    if getattr(request.user, "brand_profile", None) == deal.brief.campaign.brand:
-        side = "brand"
-    elif getattr(request.user, "creator_profile", None) == deal.brief.creator:
-        side = "creator"
-    else:
-        raise HttpError(404, "Deal not found")
-    return _domain(services.mark_deal_completed, deal, side)
+    deal = _get_deal_for_user(request, deal_id)
+    side = _deal_side(deal, request.user)
+    _domain(services.mark_deal_completed, deal, side)
+    deal.refresh_from_db()
+    return _deal_out(deal, request.user)
