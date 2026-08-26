@@ -20,7 +20,8 @@
     "asCreator": "som skaber",
     "asBrand": "som virksomhed",
     "newHere": "Ny her?",
-    "getStarted": "Se hvordan det virker"
+    "getStarted": "Se hvordan det virker",
+    "invalidInvite": "Ugyldig eller brugt invitationskode."
   },
   "onboarding": {
     "choose": "Hvem er du?",

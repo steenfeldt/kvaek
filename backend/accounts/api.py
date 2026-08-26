@@ -121,6 +121,19 @@ def niches(request):
     return NicheTag.objects.all().order_by("name")
 
 
+class InviteCheckIn(Schema):
+    code: str
+
+
+@router.post("/invites/validate", auth=None)
+def validate_invite(request, payload: InviteCheckIn):
+    """Pre-check for the signup form; the code is only consumed at onboarding."""
+    valid = InviteCode.objects.filter(
+        code=payload.code.strip(), is_active=True, used_by__isnull=True
+    ).exists()
+    return {"valid": valid}
+
+
 def _creator_or_403(request) -> CreatorProfile:
     creator = getattr(request.user, "creator_profile", None)
     if creator is None:

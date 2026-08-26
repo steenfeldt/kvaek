@@ -20,7 +20,8 @@
     "asCreator": "as a creator",
     "asBrand": "as a business",
     "newHere": "New here?",
-    "getStarted": "See how it works"
+    "getStarted": "See how it works",
+    "invalidInvite": "Invalid or already used invite code."
   },
   "onboarding": {
     "choose": "Who are you?",

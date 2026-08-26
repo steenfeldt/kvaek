@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { allauth } from "../lib/api";
+import { allauth, api } from "../lib/api";
 import { useSession } from "../stores/session";
 
 const router = useRouter();
@@ -16,13 +17,29 @@ const stage = ref<"email" | "code">("email");
 // hint under the code field.
 const intent = computed(() => sessionStorage.getItem("signup-intent"));
 const mode = ref<"login" | "signup">(intent.value ? "signup" : "login");
+const inviteCode = ref(sessionStorage.getItem("invite-code") ?? "");
+const needsInvite = computed(() => mode.value === "signup" && intent.value === "creator");
 const error = ref("");
 const busy = ref(false);
+const { t } = useI18n();
 
 async function sendCode() {
   error.value = "";
   busy.value = true;
   try {
+    if (needsInvite.value) {
+      // Fail fast: check the invite before creating an account. The code is
+      // only consumed later, at onboarding.
+      const check = await api<{ valid: boolean }>("/invites/validate", {
+        method: "POST",
+        body: JSON.stringify({ code: inviteCode.value }),
+      });
+      if (!check.valid) {
+        error.value = t("auth.invalidInvite");
+        return;
+      }
+      sessionStorage.setItem("invite-code", inviteCode.value.trim());
+    }
     const res =
       mode.value === "signup"
         ? await allauth("POST", "/auth/signup", { email: email.value })
@@ -79,6 +96,9 @@ function toLogin() {
     </header>
 
     <form v-if="stage === 'email'" class="flex flex-col gap-4" @submit.prevent="sendCode">
+      <UFormField v-if="needsInvite" :label="$t('onboarding.inviteCode')">
+        <UInput v-model="inviteCode" required size="xl" class="w-full" />
+      </UFormField>
       <UFormField :label="$t('auth.emailLabel')">
         <UInput v-model="email" type="email" required autofocus size="xl" class="w-full" />
       </UFormField>

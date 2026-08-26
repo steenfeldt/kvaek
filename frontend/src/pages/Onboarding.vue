@@ -13,7 +13,9 @@ const role = ref<"creator" | "brand" | "">(intent === "creator" || intent === "b
 const error = ref("");
 const busy = ref(false);
 
-const creator = ref({ invite_code: "", display_name: "", city: "", bio: "" });
+// Invite code carried over from the signup form, when it was entered there.
+const storedInvite = sessionStorage.getItem("invite-code") ?? "";
+const creator = ref({ invite_code: storedInvite, display_name: "", city: "", bio: "" });
 const instagram = ref({ handle: "", follower_count: 0 });
 const tiktok = ref({ handle: "", follower_count: 0 });
 
@@ -48,6 +50,7 @@ async function submit() {
       await api("/onboarding/brand", { method: "POST", body: JSON.stringify(brand.value) });
     }
     sessionStorage.removeItem("signup-intent");
+    sessionStorage.removeItem("invite-code");
     await session.refresh();
     router.push(session.postLoginRoute());
   } catch (e) {
@@ -74,7 +77,7 @@ async function submit() {
 
     <form v-else-if="role === 'creator'" class="flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.creator") }}</h1>
-      <UFormField :label="$t('onboarding.inviteCode')" required>
+      <UFormField v-if="!storedInvite" :label="$t('onboarding.inviteCode')" required>
         <UInput v-model="creator.invite_code" required class="w-full" />
       </UFormField>
       <UFormField :label="$t('onboarding.displayName')" required>
