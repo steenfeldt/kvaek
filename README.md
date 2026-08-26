@@ -7,8 +7,8 @@ Creator compensation runs off-platform in MVP. Product spec:
 [docs/founder-poc-brief.md](docs/founder-poc-brief.md).
 
 **Stack:** Django 5 + django-ninja · django-allauth (headless, email-code +
-Google) · Mollie (per-campaign one-off payments) · Postgres · Vue 3 + Vite +
-Tailwind SPA · Docker Compose.
+Google) · Mollie (per-campaign one-off payments) · Postgres · Vue 3 + Vite SPA
+with Nuxt UI v4, TanStack Vue Query, and Tailwind v4 · Docker Compose.
 
 ## Run
 

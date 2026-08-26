@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, ref } from "vue";
 import { api } from "../lib/api";
 
 interface Social {
@@ -18,62 +19,151 @@ interface Card {
   socials: Social[];
 }
 
-const cards = ref<Card[]>([]);
-const loading = ref(true);
+const queryClient = useQueryClient();
+const { data, isFetching } = useQuery({
+  queryKey: ["deck"],
+  queryFn: () => api<Card[]>("/deck"),
+  staleTime: 60_000,
+});
 
-async function load() {
-  loading.value = true;
-  cards.value = await api<Card[]>("/deck");
-  loading.value = false;
+// Cards swiped locally this round; cleared when the deck is refetched.
+const removed = ref(new Set<number>());
+const stack = computed(() => (data.value ?? []).filter((c) => !removed.value.has(c.id)));
+const top = computed(() => stack.value[0] ?? null);
+
+const swipeMutation = useMutation({
+  mutationFn: (p: { creator_id: number; direction: string }) =>
+    api("/swipes", { method: "POST", body: JSON.stringify(p) }),
+});
+
+// --- drag gesture on the top card ---
+const dx = ref(0);
+const dy = ref(0);
+const dragging = ref(false);
+const leaving = ref<null | "like" | "pass">(null);
+let startX = 0;
+let startY = 0;
+
+const cardStyle = computed(() => {
+  if (leaving.value) {
+    const sign = leaving.value === "like" ? 1 : -1;
+    return {
+      transform: `translate(${sign * 600}px, ${dy.value}px) rotate(${sign * 30}deg)`,
+      transition: "transform 0.3s ease-in",
+      opacity: "0",
+    };
+  }
+  if (dragging.value) {
+    return { transform: `translate(${dx.value}px, ${dy.value}px) rotate(${dx.value * 0.05}deg)` };
+  }
+  return { transform: "translate(0,0)", transition: "transform 0.25s ease-out" };
+});
+
+function onPointerDown(e: PointerEvent) {
+  if (leaving.value) return;
+  dragging.value = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 }
 
-async function swipe(direction: "like" | "pass") {
-  const card = cards.value[0];
-  if (!card) return;
-  cards.value = cards.value.slice(1);
-  await api("/swipes", { method: "POST", body: JSON.stringify({ creator_id: card.id, direction }) });
-  if (cards.value.length === 0) await load();
+function onPointerMove(e: PointerEvent) {
+  if (!dragging.value) return;
+  dx.value = e.clientX - startX;
+  dy.value = e.clientY - startY;
 }
 
-onMounted(load);
+function onPointerUp() {
+  if (!dragging.value) return;
+  dragging.value = false;
+  if (dx.value > 120) swipe("like");
+  else if (dx.value < -120) swipe("pass");
+  else {
+    dx.value = 0;
+    dy.value = 0;
+  }
+}
+
+function swipe(direction: "like" | "pass") {
+  const card = top.value;
+  if (!card || leaving.value) return;
+  leaving.value = direction;
+  swipeMutation.mutate({ creator_id: card.id, direction });
+  setTimeout(() => {
+    removed.value.add(card.id);
+    removed.value = new Set(removed.value);
+    leaving.value = null;
+    dx.value = 0;
+    dy.value = 0;
+    if (stack.value.length === 0) {
+      removed.value = new Set();
+      queryClient.invalidateQueries({ queryKey: ["deck"] });
+    }
+  }, 250);
+}
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-10">
-    <div v-if="cards[0]" class="overflow-hidden rounded-2xl bg-white shadow-lg">
-      <img
-        v-if="cards[0].photos[0]"
-        :src="cards[0].photos[0]"
-        class="aspect-square w-full object-cover"
-        alt=""
+  <main class="mx-auto flex max-w-md flex-col gap-6 px-6 py-8">
+    <div class="relative" style="min-height: 480px">
+      <!-- next card peeks behind -->
+      <div
+        v-if="stack[1]"
+        class="absolute inset-0 scale-95 overflow-hidden rounded-2xl bg-white opacity-60 shadow"
       />
-      <div v-else class="flex aspect-square w-full items-center justify-center bg-clay-100 text-6xl">📷</div>
-      <div class="flex flex-col gap-2 p-5">
-        <h2 class="text-xl font-semibold">
-          {{ cards[0].display_name }}
-          <span v-if="cards[0].verified" title="Verified">✔</span>
-          <span class="ml-2 text-sm font-normal text-ink-600">{{ cards[0].city }}</span>
-        </h2>
-        <p class="text-sm text-ink-600">{{ cards[0].bio }}</p>
-        <div class="flex flex-wrap gap-2 text-xs">
-          <span v-for="n in cards[0].niches" :key="n" class="rounded-full bg-clay-100 px-3 py-1">{{ n }}</span>
+      <div
+        v-if="top"
+        class="absolute inset-0 touch-none overflow-hidden rounded-2xl bg-white shadow-lg select-none"
+        :style="cardStyle"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerUp"
+      >
+        <img v-if="top.photos[0]" :src="top.photos[0]" class="aspect-square w-full object-cover" alt="" draggable="false" />
+        <div v-else class="flex aspect-square w-full items-center justify-center bg-clay-100 text-6xl">📷</div>
+        <div class="flex flex-col gap-2 p-5">
+          <h2 class="text-xl font-semibold">
+            {{ top.display_name }}
+            <UBadge v-if="top.verified" color="success" variant="subtle" size="sm">✔</UBadge>
+            <span class="ml-1 text-sm font-normal text-ink-600">{{ top.city }}</span>
+          </h2>
+          <p class="text-sm text-ink-600">{{ top.bio }}</p>
+          <div class="flex flex-wrap gap-2">
+            <UBadge v-for="n in top.niches" :key="n" color="primary" variant="subtle" size="sm">{{ n }}</UBadge>
+          </div>
+          <div class="flex gap-4 text-sm text-ink-600">
+            <span v-for="s in top.socials" :key="s.platform">
+              {{ s.platform }}: {{ s.follower_count.toLocaleString("da-DK") }} {{ $t("deck.followers") }}
+            </span>
+          </div>
         </div>
-        <div class="flex gap-4 text-sm text-ink-600">
-          <span v-for="s in cards[0].socials" :key="s.platform">
-            {{ s.platform }}: {{ s.follower_count.toLocaleString("da-DK") }} {{ $t("deck.followers") }}
-          </span>
+        <!-- drag feedback -->
+        <div
+          v-if="dx > 40"
+          class="absolute top-6 left-6 rotate-[-15deg] rounded-lg border-4 border-green-600 px-3 py-1 text-2xl font-bold text-green-600"
+        >
+          {{ $t("deck.like") }}
+        </div>
+        <div
+          v-if="dx < -40"
+          class="absolute top-6 right-6 rotate-[15deg] rounded-lg border-4 border-red-500 px-3 py-1 text-2xl font-bold text-red-500"
+        >
+          {{ $t("deck.pass") }}
         </div>
       </div>
+      <div v-else-if="!isFetching" class="flex h-full min-h-[480px] items-center justify-center">
+        <p class="text-center text-ink-600">{{ $t("deck.empty") }}</p>
+      </div>
     </div>
-    <p v-else-if="!loading" class="text-center text-ink-600">{{ $t("deck.empty") }}</p>
 
-    <div v-if="cards[0]" class="flex justify-center gap-4">
-      <button class="rounded-full border-2 border-clay-200 bg-white px-8 py-3 font-medium" @click="swipe('pass')">
+    <div v-if="top" class="flex justify-center gap-4">
+      <UButton variant="outline" color="neutral" size="xl" class="rounded-full px-8" @click="swipe('pass')">
         {{ $t("deck.pass") }}
-      </button>
-      <button class="rounded-full bg-clay-600 px-8 py-3 font-medium text-white hover:bg-clay-700" @click="swipe('like')">
+      </UButton>
+      <UButton size="xl" class="rounded-full px-8" @click="swipe('like')">
         {{ $t("deck.like") }}
-      </button>
+      </UButton>
     </div>
   </main>
 </template>

@@ -72,48 +72,51 @@ async function submit() {
       </div>
     </template>
 
-    <form v-else-if="role === 'creator'" class="flex flex-col gap-3" @submit.prevent="submit">
+    <form v-else-if="role === 'creator'" class="flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.creator") }}</h1>
-      <input v-model="creator.invite_code" :placeholder="$t('onboarding.inviteCode')" required class="input" />
-      <input v-model="creator.display_name" :placeholder="$t('onboarding.displayName')" required class="input" />
-      <input v-model="creator.city" :placeholder="$t('onboarding.city')" class="input" />
-      <textarea v-model="creator.bio" :placeholder="$t('onboarding.bio')" rows="3" class="input" />
+      <UFormField :label="$t('onboarding.inviteCode')" required>
+        <UInput v-model="creator.invite_code" required class="w-full" />
+      </UFormField>
+      <UFormField :label="$t('onboarding.displayName')" required>
+        <UInput v-model="creator.display_name" required class="w-full" />
+      </UFormField>
+      <UFormField :label="$t('onboarding.city')">
+        <UInput v-model="creator.city" class="w-full" />
+      </UFormField>
+      <UFormField :label="$t('onboarding.bio')">
+        <UTextarea v-model="creator.bio" :rows="3" class="w-full" />
+      </UFormField>
       <div class="flex gap-2">
-        <input v-model="instagram.handle" placeholder="Instagram @" class="input flex-1" />
-        <input v-model.number="instagram.follower_count" type="number" min="0" placeholder="Følgere" class="input w-32" />
+        <UInput v-model="instagram.handle" placeholder="Instagram @" class="flex-1" />
+        <UInput v-model.number="instagram.follower_count" type="number" min="0" placeholder="Følgere" class="w-32" />
       </div>
       <div class="flex gap-2">
-        <input v-model="tiktok.handle" placeholder="TikTok @" class="input flex-1" />
-        <input v-model.number="tiktok.follower_count" type="number" min="0" placeholder="Følgere" class="input w-32" />
+        <UInput v-model="tiktok.handle" placeholder="TikTok @" class="flex-1" />
+        <UInput v-model.number="tiktok.follower_count" type="number" min="0" placeholder="Følgere" class="w-32" />
       </div>
-      <button :disabled="busy" class="rounded-lg bg-clay-600 py-3 font-medium text-white hover:bg-clay-700">
-        {{ $t("onboarding.submit") }}
-      </button>
+      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("onboarding.submit") }}</UButton>
     </form>
 
-    <form v-else class="flex flex-col gap-3" @submit.prevent="submit">
+    <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.brand") }}</h1>
-      <div class="flex gap-2">
-        <input v-model="brand.cvr" :placeholder="$t('onboarding.cvr')" maxlength="8" class="input flex-1" @blur="cvrLookup" />
-        <button type="button" class="rounded-lg border border-clay-200 px-4" @click="cvrLookup">
-          {{ $t("onboarding.cvrLookup") }}
-        </button>
-      </div>
-      <input v-model="brand.company_name" :placeholder="$t('onboarding.companyName')" required class="input" />
-      <input v-model="brand.website" :placeholder="$t('onboarding.website')" type="url" class="input" />
-      <input v-model="brand.city" :placeholder="$t('onboarding.city')" class="input" />
-      <button :disabled="busy" class="rounded-lg bg-clay-600 py-3 font-medium text-white hover:bg-clay-700">
-        {{ $t("onboarding.submit") }}
-      </button>
+      <UFormField :label="$t('onboarding.cvr')">
+        <div class="flex gap-2">
+          <UInput v-model="brand.cvr" maxlength="8" class="flex-1" @blur="cvrLookup" />
+          <UButton variant="outline" color="neutral" @click="cvrLookup">{{ $t("onboarding.cvrLookup") }}</UButton>
+        </div>
+      </UFormField>
+      <UFormField :label="$t('onboarding.companyName')" required>
+        <UInput v-model="brand.company_name" required class="w-full" />
+      </UFormField>
+      <UFormField :label="$t('onboarding.website')">
+        <UInput v-model="brand.website" type="url" class="w-full" />
+      </UFormField>
+      <UFormField :label="$t('onboarding.city')">
+        <UInput v-model="brand.city" class="w-full" />
+      </UFormField>
+      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("onboarding.submit") }}</UButton>
     </form>
 
-    <p v-if="error" class="text-sm text-red-700">{{ error }}</p>
+    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
   </main>
 </template>
-
-<style scoped>
-@reference "../style.css";
-.input {
-  @apply rounded-lg border border-clay-200 bg-white px-4 py-3;
-}
-</style>

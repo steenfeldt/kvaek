@@ -1,13 +1,20 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
 
-/* Own design system — warm/editorial direction, first pass. */
+/* Own design system — warm/editorial. Clay is the brand ramp (from the logo),
+   ink the warm text colors, cream the page ground. */
 @theme {
   --color-clay-50: #faf5f0;
   --color-clay-100: #f4e8dd;
   --color-clay-200: #e8d0bc;
+  --color-clay-300: #dcb59a;
+  --color-clay-400: #d29276;
   --color-clay-500: #c96f4a;
   --color-clay-600: #b25532;
   --color-clay-700: #93432a;
+  --color-clay-800: #763726;
+  --color-clay-900: #5f2e22;
+  --color-clay-950: #33170f;
   --color-ink-900: #2b2118;
   --color-ink-600: #6b5d4f;
   --color-cream: #fdfaf6;

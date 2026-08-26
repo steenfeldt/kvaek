@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "../lib/api";
 import { kr } from "../lib/format";
@@ -23,67 +24,70 @@ interface Message {
 
 const route = useRoute();
 const id = route.params.id as string;
-const deal = ref<Deal | null>(null);
-const messages = ref<Message[]>([]);
-const draft = ref("");
-const rating = ref(5);
-const reviewText = ref("");
-const reviewDone = ref(false);
-const error = ref("");
-const thread = ref<HTMLElement | null>(null);
-let timer: ReturnType<typeof setInterval> | undefined;
+const queryClient = useQueryClient();
+const toast = useToast();
 
-async function scrollDown() {
-  await nextTick();
-  thread.value?.scrollTo({ top: thread.value.scrollHeight });
-}
+const { data: deal } = useQuery({ queryKey: ["deal", id], queryFn: () => api<Deal>(`/deals/${id}`) });
 
-async function fetchMessages() {
-  const lastId = messages.value.at(-1)?.id ?? 0;
-  const fresh = await api<Message[]>(`/deals/${id}/messages?after_id=${lastId}`);
-  if (fresh.length) {
-    messages.value.push(...fresh);
-    scrollDown();
-  }
-}
-
-onMounted(async () => {
-  deal.value = await api<Deal>(`/deals/${id}`);
-  await fetchMessages();
-  timer = setInterval(fetchMessages, 3000);
+// Polls while the tab is focused; Vue Query pauses refetching in background tabs.
+const { data: messages } = useQuery({
+  queryKey: ["messages", id],
+  queryFn: () => api<Message[]>(`/deals/${id}/messages`),
+  refetchInterval: 3000,
 });
-onUnmounted(() => clearInterval(timer));
 
-async function send() {
+const thread = ref<HTMLElement | null>(null);
+watch(
+  () => messages.value?.length,
+  async () => {
+    await nextTick();
+    thread.value?.scrollTo({ top: thread.value.scrollHeight });
+  },
+);
+
+const draft = ref("");
+
+const sendMutation = useMutation({
+  mutationFn: (body: string) =>
+    api<Message>(`/deals/${id}/messages`, { method: "POST", body: JSON.stringify({ body }) }),
+  onSuccess: (m) => {
+    queryClient.setQueryData<Message[]>(["messages", id], (old) => [...(old ?? []), m]);
+  },
+});
+
+function send() {
   const body = draft.value.trim();
   if (!body) return;
   draft.value = "";
-  const m = await api<Message>(`/deals/${id}/messages`, { method: "POST", body: JSON.stringify({ body }) });
-  messages.value.push(m);
-  scrollDown();
+  sendMutation.mutate(body);
 }
 
-async function complete() {
-  deal.value = await api<Deal>(`/deals/${id}/complete`, { method: "POST" });
-}
+const completeMutation = useMutation({
+  mutationFn: () => api<Deal>(`/deals/${id}/complete`, { method: "POST" }),
+  onSuccess: (d) => {
+    queryClient.setQueryData(["deal", id], d);
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
+  },
+});
 
-async function submitReview() {
-  error.value = "";
-  try {
-    await api(`/deals/${id}/reviews`, {
+const rating = ref(5);
+const reviewText = ref("");
+const reviewDone = ref(false);
+
+const reviewMutation = useMutation({
+  mutationFn: () =>
+    api(`/deals/${id}/reviews`, {
       method: "POST",
       body: JSON.stringify({ rating: rating.value, text: reviewText.value }),
-    });
-    reviewDone.value = true;
-  } catch (e) {
-    error.value = (e as Error).message;
-  }
-}
+    }),
+  onSuccess: () => (reviewDone.value = true),
+  onError: (e) => toast.add({ title: e.message, color: "error" }),
+});
 </script>
 
 <template>
   <main v-if="deal" class="mx-auto flex h-[calc(100vh-3.5rem)] max-w-2xl flex-col px-4 py-4">
-    <header class="rounded-2xl bg-white p-4 shadow">
+    <UCard>
       <div class="flex items-center justify-between">
         <div>
           <h1 class="font-semibold">{{ deal.counterpart_name }}</h1>
@@ -91,20 +95,23 @@ async function submitReview() {
             {{ deal.campaign_name }} · {{ $t("deals.agreed", { amount: kr(deal.agreed_amount_ore) }) }}
           </p>
         </div>
-        <button
+        <UButton
           v-if="!deal.completed_by_me"
-          class="rounded-lg border border-clay-200 px-3 py-2 text-sm hover:border-green-400"
-          @click="complete"
+          variant="outline"
+          color="neutral"
+          size="sm"
+          :loading="completeMutation.isPending.value"
+          @click="completeMutation.mutate()"
         >
           {{ $t("chat.markComplete") }}
-        </button>
+        </UButton>
       </div>
       <p v-if="deal.completed" class="mt-2 text-sm text-green-700">{{ $t("chat.completedBoth") }}</p>
       <template v-else>
         <p v-if="deal.completed_by_me" class="mt-2 text-sm text-ink-600">{{ $t("chat.completedByYou") }}</p>
         <p v-if="deal.completed_by_other" class="mt-1 text-sm text-ink-600">{{ $t("chat.completedByOther") }}</p>
       </template>
-    </header>
+    </UCard>
 
     <div ref="thread" class="my-4 flex-1 space-y-2 overflow-y-auto">
       <div
@@ -117,34 +124,21 @@ async function submitReview() {
       </div>
     </div>
 
-    <section
-      v-if="deal.completed && !deal.reviewed_by_me && !reviewDone"
-      class="mb-3 rounded-2xl bg-white p-4 shadow"
-    >
+    <UCard v-if="deal.completed && !deal.reviewed_by_me && !reviewDone" class="mb-3">
       <h2 class="mb-2 font-semibold">{{ $t("chat.review") }}</h2>
       <div class="mb-2 flex gap-1 text-2xl">
-        <button v-for="n in 5" :key="n" @click="rating = n">{{ n <= rating ? "★" : "☆" }}</button>
+        <button v-for="n in 5" :key="n" type="button" @click="rating = n">{{ n <= rating ? "★" : "☆" }}</button>
       </div>
-      <textarea v-model="reviewText" :placeholder="$t('chat.reviewText')" rows="2" class="input mb-2 w-full" />
-      <button class="w-full rounded-lg bg-clay-600 py-2 text-white" @click="submitReview">
+      <UTextarea v-model="reviewText" :placeholder="$t('chat.reviewText')" :rows="2" class="mb-2 w-full" />
+      <UButton block :loading="reviewMutation.isPending.value" @click="reviewMutation.mutate()">
         {{ $t("chat.submitReview") }}
-      </button>
-      <p v-if="error" class="mt-2 text-sm text-red-700">{{ error }}</p>
-    </section>
+      </UButton>
+    </UCard>
     <p v-else-if="reviewDone" class="mb-3 text-center text-sm text-green-700">{{ $t("chat.reviewed") }}</p>
 
     <form class="flex gap-2" @submit.prevent="send">
-      <input v-model="draft" :placeholder="$t('chat.placeholder')" class="input flex-1" />
-      <button class="rounded-lg bg-clay-600 px-6 py-3 font-medium text-white hover:bg-clay-700">
-        {{ $t("chat.send") }}
-      </button>
+      <UInput v-model="draft" :placeholder="$t('chat.placeholder')" size="lg" class="flex-1" />
+      <UButton type="submit" size="lg">{{ $t("chat.send") }}</UButton>
     </form>
   </main>
 </template>
-
-<style scoped>
-@reference "../style.css";
-.input {
-  @apply rounded-lg border border-clay-200 bg-white px-4 py-3;
-}
-</style>

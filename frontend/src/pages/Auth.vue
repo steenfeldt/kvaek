@@ -55,8 +55,8 @@ async function confirmCode() {
   }
 }
 
-function switchMode() {
-  mode.value = mode.value === "login" ? "signup" : "login";
+function switchMode(to?: string) {
+  mode.value = to === "signup" || to === "login" ? to : mode.value === "login" ? "signup" : "login";
   stage.value = "email";
   code.value = "";
   error.value = "";
@@ -65,59 +65,53 @@ function switchMode() {
 
 <template>
   <main class="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-6">
+    <img src="/logo.png" alt="" class="mx-auto h-20 w-20" />
+
     <div class="flex rounded-xl border border-clay-200 bg-white p-1 text-sm font-medium">
       <button
         class="flex-1 rounded-lg py-2"
         :class="mode === 'login' ? 'bg-clay-600 text-white' : 'text-ink-600'"
-        @click="mode !== 'login' && switchMode()"
+        @click="switchMode('login')"
       >
         {{ $t("auth.login") }}
       </button>
       <button
         class="flex-1 rounded-lg py-2"
         :class="mode === 'signup' ? 'bg-clay-600 text-white' : 'text-ink-600'"
-        @click="mode !== 'signup' && switchMode()"
+        @click="switchMode('signup')"
       >
         {{ $t("auth.signup") }}
       </button>
     </div>
 
-    <form v-if="stage === 'email'" class="flex flex-col gap-3" @submit.prevent="sendCode">
-      <label class="text-sm text-ink-600">{{ $t("auth.emailLabel") }}</label>
-      <input
-        v-model="email"
-        type="email"
-        required
-        autofocus
-        class="rounded-lg border border-clay-200 bg-white px-4 py-3"
-      />
-      <button :disabled="busy" class="rounded-lg bg-clay-600 py-3 font-medium text-white hover:bg-clay-700">
-        {{ $t("auth.sendCode") }}
-      </button>
+    <form v-if="stage === 'email'" class="flex flex-col gap-4" @submit.prevent="sendCode">
+      <UFormField :label="$t('auth.emailLabel')">
+        <UInput v-model="email" type="email" required autofocus size="xl" class="w-full" />
+      </UFormField>
+      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("auth.sendCode") }}</UButton>
     </form>
 
-    <form v-else class="flex flex-col gap-3" @submit.prevent="confirmCode">
+    <form v-else class="flex flex-col gap-4" @submit.prevent="confirmCode">
       <p class="text-sm text-ink-600">{{ $t("auth.sentTo", { email }) }}</p>
-      <label class="text-sm text-ink-600">{{ $t("auth.codeLabel") }}</label>
-      <input
-        v-model="code"
-        inputmode="text"
-        autocapitalize="characters"
-        required
-        autofocus
-        class="rounded-lg border border-clay-200 bg-white px-4 py-3 text-center text-xl tracking-widest"
-      />
-      <button :disabled="busy" class="rounded-lg bg-clay-600 py-3 font-medium text-white hover:bg-clay-700">
-        {{ $t("auth.confirm") }}
-      </button>
+      <UFormField :label="$t('auth.codeLabel')">
+        <UInput
+          v-model="code"
+          required
+          autofocus
+          size="xl"
+          class="w-full"
+          :ui="{ base: 'text-center text-xl tracking-widest uppercase' }"
+        />
+      </UFormField>
+      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("auth.confirm") }}</UButton>
       <p class="text-sm text-ink-600">
         {{ mode === "login" ? $t("auth.noCodeLogin") : $t("auth.noCodeSignup") }}
-        <button type="button" class="underline" @click="switchMode">
+        <button type="button" class="underline" @click="switchMode()">
           {{ mode === "login" ? $t("auth.signup") : $t("auth.login") }}
         </button>
       </p>
     </form>
 
-    <p v-if="error" class="text-sm text-red-700">{{ error }}</p>
+    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
   </main>
 </template>

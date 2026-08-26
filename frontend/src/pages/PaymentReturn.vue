@@ -1,38 +1,26 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "../lib/api";
 
 const route = useRoute();
 const id = route.params.id as string;
-const state = ref<"waiting" | "success" | "failed">("waiting");
-let timer: ReturnType<typeof setInterval> | undefined;
-let attempts = 0;
+const attempts = ref(0);
 
-async function poll() {
-  attempts += 1;
-  try {
-    const campaign = await api<{ status: string }>(`/campaigns/${id}`);
-    if (campaign.status === "active") {
-      state.value = "success";
-      clearInterval(timer);
-    } else if (attempts >= 12) {
-      state.value = "failed";
-      clearInterval(timer);
-    }
-  } catch {
-    if (attempts >= 12) {
-      state.value = "failed";
-      clearInterval(timer);
-    }
-  }
-}
-
-onMounted(() => {
-  poll();
-  timer = setInterval(poll, 2500);
+const { data } = useQuery({
+  queryKey: ["campaign", id, "payment-poll"],
+  queryFn: () => {
+    attempts.value += 1;
+    return api<{ status: string }>(`/campaigns/${id}`);
+  },
+  refetchInterval: (query) => (query.state.data?.status === "active" ? false : 2500),
 });
-onUnmounted(() => clearInterval(timer));
+
+const state = computed<"waiting" | "success" | "failed">(() => {
+  if (data.value?.status === "active") return "success";
+  return attempts.value >= 12 ? "failed" : "waiting";
+});
 </script>
 
 <template>
@@ -44,15 +32,13 @@ onUnmounted(() => clearInterval(timer));
     <template v-else-if="state === 'success'">
       <p class="text-4xl">🎉</p>
       <p class="text-lg font-medium">{{ $t("payment.success") }}</p>
-      <RouterLink :to="`/campaigns/${id}`" class="rounded-lg bg-clay-600 px-6 py-3 text-white">
-        {{ $t("payment.toCampaign") }}
-      </RouterLink>
+      <UButton :to="`/campaigns/${id}`" size="lg">{{ $t("payment.toCampaign") }}</UButton>
     </template>
     <template v-else>
       <p class="text-lg font-medium">{{ $t("payment.failed") }}</p>
-      <RouterLink :to="`/campaigns/${id}`" class="rounded-lg border border-clay-200 px-6 py-3">
+      <UButton :to="`/campaigns/${id}`" variant="outline" color="neutral" size="lg">
         {{ $t("payment.retry") }}
-      </RouterLink>
+      </UButton>
     </template>
   </main>
 </template>

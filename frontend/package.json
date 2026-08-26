@@ -8,6 +8,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.11.0",
+    "@tanstack/vue-query": "^5.102.5",
+    "@vueuse/core": "^14.4.0",
     "pinia": "^3.0.0",
     "vue": "^3.5.0",
     "vue-i18n": "^11.0.0",

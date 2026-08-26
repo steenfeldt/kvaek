@@ -11,7 +11,12 @@ reference (its stack was Next.js/Supabase; this rebuild is deliberate).
   email-code + Google. Session cookies; the Vite dev server proxies so
   everything is same-origin.
 - Money: integer øre (DKK). Tier prices/quotas in `campaigns/models.py::TIER_CONFIG`.
-- Frontend: Vue 3 + Vite + Tailwind v4 in `frontend/`, Danish-first (vue-i18n,
-  `da` default). Deck/API responses must never expose creator handles or links
-  to brands pre-deal (anti-circumvention).
+- Frontend: Vue 3 + Vite in `frontend/` (no Nuxt — deliberate), Danish-first
+  (vue-i18n, `da` default). UI components come from Nuxt UI v4 in plain-Vue
+  mode (auto-imported `U*` components; brand colors map to the `clay` ramp in
+  `src/style.css` via the vite plugin in `vite.config.ts`). Server data goes
+  through TanStack Vue Query (`useQuery`/`useMutation` + invalidation), not
+  ad-hoc onMounted fetches. Deck/API responses must never expose creator
+  handles or links to brands pre-deal (anti-circumvention). FormKit was
+  considered and deferred — revisit only if forms get schema-heavy.
 - Everything runs via `docker compose up`; tests: `docker compose exec backend pytest`.

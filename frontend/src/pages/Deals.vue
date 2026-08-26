@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import { api } from "../lib/api";
 import { kr } from "../lib/format";
 
@@ -11,17 +11,13 @@ interface Deal {
   completed: boolean;
 }
 
-const deals = ref<Deal[]>([]);
-
-onMounted(async () => {
-  deals.value = await api<Deal[]>("/deals");
-});
+const { data: deals } = useQuery({ queryKey: ["deals"], queryFn: () => api<Deal[]>("/deals") });
 </script>
 
 <template>
   <main class="mx-auto flex max-w-2xl flex-col gap-3 px-4 py-8">
     <h1 class="text-xl font-semibold">{{ $t("deals.title") }}</h1>
-    <p v-if="!deals.length" class="text-ink-600">{{ $t("deals.empty") }}</p>
+    <p v-if="deals && !deals.length" class="text-ink-600">{{ $t("deals.empty") }}</p>
     <RouterLink
       v-for="d in deals"
       :key="d.id"
@@ -34,9 +30,7 @@ onMounted(async () => {
       </div>
       <div class="flex items-center gap-3 text-sm">
         <span class="text-ink-600">{{ $t("deals.agreed", { amount: kr(d.agreed_amount_ore) }) }}</span>
-        <span v-if="d.completed" class="rounded-full bg-green-100 px-3 py-1 text-green-800">
-          {{ $t("status.completed") }}
-        </span>
+        <UBadge v-if="d.completed" color="success" variant="subtle">{{ $t("status.completed") }}</UBadge>
       </div>
     </RouterLink>
   </main>

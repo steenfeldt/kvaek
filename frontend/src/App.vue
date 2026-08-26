@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { da, en } from "@nuxt/ui/locale";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { allauth } from "./lib/api";
@@ -7,6 +9,7 @@ import { useSession } from "./stores/session";
 const session = useSession();
 const router = useRouter();
 const { locale } = useI18n();
+const uiLocale = computed(() => (locale.value === "da" ? da : en));
 
 async function logout() {
   await allauth("DELETE", "/auth/session");
@@ -21,38 +24,37 @@ function toggleLocale() {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <header v-if="session.authenticated && session.role" class="border-b border-clay-200 bg-white">
-      <nav class="mx-auto flex max-w-3xl items-center gap-5 px-4 py-3 text-sm">
-        <RouterLink :to="session.role === 'brand' ? '/deck' : '/home'">
-          <img src="/logo.png" alt="Kvæk" class="h-8 w-8 rounded-lg" />
-        </RouterLink>
-        <template v-if="session.role === 'brand'">
-          <RouterLink to="/deck" class="navlink">{{ $t("nav.deck") }}</RouterLink>
-          <RouterLink to="/campaigns" class="navlink">{{ $t("nav.campaigns") }}</RouterLink>
-        </template>
-        <template v-else>
-          <RouterLink to="/home" class="navlink">{{ $t("nav.home") }}</RouterLink>
-          <RouterLink to="/profile" class="navlink">{{ $t("nav.profile") }}</RouterLink>
-        </template>
-        <RouterLink to="/briefs" class="navlink">{{ $t("nav.briefs") }}</RouterLink>
-        <RouterLink to="/deals" class="navlink">{{ $t("nav.deals") }}</RouterLink>
-        <span class="flex-1" />
-        <button class="text-ink-600 hover:text-ink-900" @click="toggleLocale">
-          {{ locale === "da" ? "EN" : "DA" }}
-        </button>
-        <button class="text-ink-600 hover:text-ink-900" @click="logout">{{ $t("nav.logout") }}</button>
-      </nav>
-    </header>
-    <RouterView />
-  </div>
+  <UApp :locale="uiLocale">
+    <div class="min-h-screen">
+      <header v-if="session.authenticated && session.role" class="border-b border-clay-200 bg-white">
+        <nav class="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2 text-sm">
+          <RouterLink :to="session.role === 'brand' ? '/deck' : '/home'" class="mr-2">
+            <img src="/logo.png" alt="Kvæk" class="h-8 w-8 rounded-lg" />
+          </RouterLink>
+          <template v-if="session.role === 'brand'">
+            <UButton to="/deck" variant="ghost" color="neutral" class="navlink">{{ $t("nav.deck") }}</UButton>
+            <UButton to="/campaigns" variant="ghost" color="neutral" class="navlink">{{ $t("nav.campaigns") }}</UButton>
+          </template>
+          <template v-else>
+            <UButton to="/home" variant="ghost" color="neutral" class="navlink">{{ $t("nav.home") }}</UButton>
+            <UButton to="/profile" variant="ghost" color="neutral" class="navlink">{{ $t("nav.profile") }}</UButton>
+          </template>
+          <UButton to="/briefs" variant="ghost" color="neutral" class="navlink">{{ $t("nav.briefs") }}</UButton>
+          <UButton to="/deals" variant="ghost" color="neutral" class="navlink">{{ $t("nav.deals") }}</UButton>
+          <span class="flex-1" />
+          <UButton variant="ghost" color="neutral" size="sm" @click="toggleLocale">
+            {{ locale === "da" ? "EN" : "DA" }}
+          </UButton>
+          <UButton variant="ghost" color="neutral" size="sm" @click="logout">{{ $t("nav.logout") }}</UButton>
+        </nav>
+      </header>
+      <RouterView />
+    </div>
+  </UApp>
 </template>
 
 <style scoped>
 @reference "./style.css";
-.navlink {
-  @apply text-ink-600 hover:text-ink-900;
-}
 .navlink.router-link-active {
   @apply font-semibold text-clay-700;
 }
