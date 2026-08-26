@@ -19,9 +19,39 @@ const intent = computed(() => sessionStorage.getItem("signup-intent"));
 const mode = ref<"login" | "signup">(intent.value ? "signup" : "login");
 const inviteCode = ref(sessionStorage.getItem("invite-code") ?? "");
 const needsInvite = computed(() => mode.value === "signup" && intent.value === "creator");
+// Code login is the default; a password is an opt-in alternative for login.
+const usePassword = ref(false);
+const password = ref("");
+const info = ref("");
 const error = ref("");
 const busy = ref(false);
 const { t } = useI18n();
+
+async function loginWithPassword() {
+  error.value = "";
+  busy.value = true;
+  try {
+    const res = await allauth("POST", "/auth/login", { email: email.value, password: password.value });
+    if (res.status === 200 || res.data?.meta?.is_authenticated) {
+      await session.refresh();
+      router.push(session.postLoginRoute());
+    } else {
+      error.value = res.data?.errors?.[0]?.message ?? "Something went wrong";
+    }
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function forgotPassword() {
+  if (!email.value) {
+    error.value = t("auth.forgotNeedsEmail");
+    return;
+  }
+  error.value = "";
+  await allauth("POST", "/auth/password/request", { email: email.value });
+  info.value = t("auth.forgotSent");
+}
 
 async function sendCode() {
   error.value = "";
@@ -95,14 +125,39 @@ function toLogin() {
       </p>
     </header>
 
-    <form v-if="stage === 'email'" class="flex flex-col gap-4" @submit.prevent="sendCode">
+    <form
+      v-if="stage === 'email'"
+      class="flex flex-col gap-4"
+      @submit.prevent="usePassword ? loginWithPassword() : sendCode()"
+    >
       <UFormField v-if="needsInvite" :label="$t('onboarding.inviteCode')">
         <UInput v-model="inviteCode" required size="xl" class="w-full" />
       </UFormField>
       <UFormField :label="$t('auth.emailLabel')">
         <UInput v-model="email" type="email" required autofocus size="xl" class="w-full" />
       </UFormField>
-      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("auth.sendCode") }}</UButton>
+      <UFormField v-if="usePassword" :label="$t('auth.passwordLabel')">
+        <UInput v-model="password" type="password" required size="xl" class="w-full" />
+      </UFormField>
+      <UButton type="submit" :loading="busy" size="xl" block>
+        {{ usePassword ? $t("auth.login") : $t("auth.sendCode") }}
+      </UButton>
+      <p v-if="mode === 'login'" class="text-center text-sm text-ink-600">
+        <template v-if="!usePassword">
+          <button type="button" class="underline" @click="usePassword = true">
+            {{ $t("auth.loginWithPassword") }}
+          </button>
+        </template>
+        <template v-else>
+          <button type="button" class="underline" @click="usePassword = false">
+            {{ $t("auth.useCodeInstead") }}
+          </button>
+          ·
+          <button type="button" class="underline" @click="forgotPassword">
+            {{ $t("auth.forgotPassword") }}
+          </button>
+        </template>
+      </p>
     </form>
 
     <form v-else class="flex flex-col gap-4" @submit.prevent="confirmCode">
@@ -143,6 +198,7 @@ function toLogin() {
       </template>
     </p>
 
+    <UAlert v-if="info" color="info" variant="subtle" :description="info" />
     <UAlert v-if="error" color="error" variant="subtle" :description="error" />
   </main>
 </template>

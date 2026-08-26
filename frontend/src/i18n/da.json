@@ -21,7 +21,13 @@
     "asBrand": "som virksomhed",
     "newHere": "Ny her?",
     "getStarted": "Se hvordan det virker",
-    "invalidInvite": "Ugyldig eller brugt invitationskode."
+    "invalidInvite": "Ugyldig eller brugt invitationskode.",
+    "passwordLabel": "Adgangskode",
+    "loginWithPassword": "Log ind med adgangskode",
+    "useCodeInstead": "Brug engangskode i stedet",
+    "forgotPassword": "Glemt adgangskode?",
+    "forgotNeedsEmail": "Skriv din e-mail først.",
+    "forgotSent": "Hvis kontoen findes, har vi sendt et link til at nulstille adgangskoden."
   },
   "onboarding": {
     "choose": "Hvem er du?",
@@ -49,7 +55,8 @@
     "deals": "Aftaler",
     "home": "Hjem",
     "profile": "Profil",
-    "logout": "Log ud"
+    "logout": "Log ud",
+    "account": "Konto"
   },
   "deck": {
     "empty": "Ikke flere profiler lige nu — kom tilbage senere.",
@@ -186,5 +193,23 @@
     "reason": "Beskriv problemet …",
     "submit": "Send anmeldelse",
     "sent": "Tak — vi kigger på det."
+  },
+  "account": {
+    "title": "Konto",
+    "passwordTitle": "Adgangskode",
+    "hasPasswordHint": "Du kan logge ind med både engangskode og adgangskode.",
+    "noPasswordHint": "Du logger i dag ind med engangskode på e-mail. Opret en adgangskode, hvis du foretrækker det.",
+    "currentPassword": "Nuværende adgangskode",
+    "newPassword": "Ny adgangskode",
+    "repeatPassword": "Gentag ny adgangskode",
+    "passwordMismatch": "Adgangskoderne er ikke ens.",
+    "setPassword": "Opret adgangskode",
+    "changePassword": "Skift adgangskode",
+    "passwordSaved": "Adgangskoden er gemt."
+  },
+  "reset": {
+    "title": "Vælg ny adgangskode",
+    "submit": "Gem adgangskode",
+    "done": "Adgangskoden er nulstillet — log ind."
   }
 }

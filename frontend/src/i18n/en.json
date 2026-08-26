@@ -21,7 +21,13 @@
     "asBrand": "as a business",
     "newHere": "New here?",
     "getStarted": "See how it works",
-    "invalidInvite": "Invalid or already used invite code."
+    "invalidInvite": "Invalid or already used invite code.",
+    "passwordLabel": "Password",
+    "loginWithPassword": "Log in with password",
+    "useCodeInstead": "Use a one-time code instead",
+    "forgotPassword": "Forgot password?",
+    "forgotNeedsEmail": "Enter your email first.",
+    "forgotSent": "If the account exists, we've sent a password reset link."
   },
   "onboarding": {
     "choose": "Who are you?",
@@ -49,7 +55,8 @@
     "deals": "Deals",
     "home": "Home",
     "profile": "Profile",
-    "logout": "Log out"
+    "logout": "Log out",
+    "account": "Account"
   },
   "deck": {
     "empty": "No more profiles right now — check back later.",
@@ -186,5 +193,23 @@
     "reason": "Describe the problem …",
     "submit": "Send report",
     "sent": "Thanks — we'll look into it."
+  },
+  "account": {
+    "title": "Account",
+    "passwordTitle": "Password",
+    "hasPasswordHint": "You can log in with both a one-time code and a password.",
+    "noPasswordHint": "You currently log in with one-time email codes. Set a password if you prefer.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "repeatPassword": "Repeat new password",
+    "passwordMismatch": "The passwords don't match.",
+    "setPassword": "Set password",
+    "changePassword": "Change password",
+    "passwordSaved": "Password saved."
+  },
+  "reset": {
+    "title": "Choose a new password",
+    "submit": "Save password",
+    "done": "Password reset — log in."
   }
 }

@@ -42,6 +42,9 @@ function toggleLocale() {
           <UButton to="/briefs" variant="ghost" color="neutral" class="navlink">{{ $t("nav.briefs") }}</UButton>
           <UButton to="/deals" variant="ghost" color="neutral" class="navlink">{{ $t("nav.deals") }}</UButton>
           <span class="flex-1" />
+          <UButton to="/account" variant="ghost" color="neutral" size="sm" class="navlink">
+            {{ $t("nav.account") }}
+          </UButton>
           <UButton variant="ghost" color="neutral" size="sm" @click="toggleLocale">
             {{ locale === "da" ? "EN" : "DA" }}
           </UButton>
