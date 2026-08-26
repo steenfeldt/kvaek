@@ -11,6 +11,7 @@ function go(role: "brand" | "creator") {
 
 <template>
   <main class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-10 px-6 text-center">
+    <img src="/logo.png" alt="" class="h-36 w-36" />
     <h1 class="text-4xl font-semibold tracking-tight">{{ $t("landing.tagline") }}</h1>
     <div class="grid w-full gap-4 sm:grid-cols-2">
       <button

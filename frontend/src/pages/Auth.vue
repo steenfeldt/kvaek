@@ -19,19 +19,25 @@ async function sendCode() {
   error.value = "";
   busy.value = true;
   try {
-    const login = await allauth("POST", "/auth/code/request", { email: email.value });
-    if (login.status === 401 || login.status === 200) {
-      mode.value = "login";
-      stage.value = "code";
-      return;
-    }
-    // Unknown account — sign up instead; verification code is emailed.
+    // Signup first; an existing account falls through to a login code.
+    // Exactly one email is sent either way.
     const signup = await allauth("POST", "/auth/signup", { email: email.value });
     if (signup.status === 401 || signup.status === 200) {
       mode.value = "signup";
       stage.value = "code";
+      return;
+    }
+    const errors: { code: string; message: string }[] = signup.data?.errors ?? [];
+    if (errors.some((e) => e.code === "email_taken")) {
+      const login = await allauth("POST", "/auth/code/request", { email: email.value });
+      if (login.status === 401 || login.status === 200) {
+        mode.value = "login";
+        stage.value = "code";
+      } else {
+        error.value = login.data?.errors?.[0]?.message ?? "Something went wrong";
+      }
     } else {
-      error.value = signup.data?.errors?.[0]?.message ?? "Something went wrong";
+      error.value = errors[0]?.message ?? "Something went wrong";
     }
   } finally {
     busy.value = false;

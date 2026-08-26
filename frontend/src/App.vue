@@ -24,6 +24,9 @@ function toggleLocale() {
   <div class="min-h-screen">
     <header v-if="session.authenticated && session.role" class="border-b border-clay-200 bg-white">
       <nav class="mx-auto flex max-w-3xl items-center gap-5 px-4 py-3 text-sm">
+        <RouterLink :to="session.role === 'brand' ? '/deck' : '/home'">
+          <img src="/logo.png" alt="Kvæk" class="h-8 w-8 rounded-lg" />
+        </RouterLink>
         <template v-if="session.role === 'brand'">
           <RouterLink to="/deck" class="navlink">{{ $t("nav.deck") }}</RouterLink>
           <RouterLink to="/campaigns" class="navlink">{{ $t("nav.campaigns") }}</RouterLink>
