@@ -1,0 +1,6 @@
+{% extends "account/email/base_message.txt" %}
+{% block content %}{% autoescape off %}Nogen (forhåbentlig dig) forsøgte at logge ind med {{ email }}, men der findes ingen konto med den e-mail.
+
+Vil du oprette en konto? Start her: {{ signup_url }}
+
+Ellers kan du se bort fra denne mail.{% endautoescape %}{% endblock content %}

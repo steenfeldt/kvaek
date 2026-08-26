@@ -1,0 +1,6 @@
+{% autoescape off %}Hej,
+
+{% block content %}{% endblock content %}
+
+Venlig hilsen
+{{ current_site.name }}{% endautoescape %}

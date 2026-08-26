@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { ref, watch } from "vue";
+import NichePicker from "../components/NichePicker.vue";
 import { api, apiUpload } from "../lib/api";
 
 interface Photo {
@@ -13,7 +14,8 @@ interface Profile {
   bio: string;
   listed: boolean;
   verified: boolean;
-  niches: string[];
+  verification_status: string | null;
+  niches: { name: string; slug: string }[];
   social_links: { platform: string; handle: string; follower_count: number; verified: boolean }[];
   photos: Photo[];
 }
@@ -22,11 +24,17 @@ const queryClient = useQueryClient();
 const toast = useToast();
 const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => api<Profile>("/me/profile") });
 
-const form = ref({ display_name: "", city: "", bio: "" });
+const form = ref({ display_name: "", city: "", bio: "", niches: [] as string[] });
 watch(
   profile,
   (p) => {
-    if (p) form.value = { display_name: p.display_name, city: p.city, bio: p.bio };
+    if (p)
+      form.value = {
+        display_name: p.display_name,
+        city: p.city,
+        bio: p.bio,
+        niches: p.niches.map((n) => n.slug),
+      };
   },
   { immediate: true },
 );
@@ -58,15 +66,32 @@ const deleteMutation = useMutation({
   mutationFn: (photoId: number) => api(`/me/photos/${photoId}`, { method: "DELETE" }),
   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
 });
+
+const evidenceInput = ref<HTMLInputElement | null>(null);
+
+const verifyMutation = useMutation({
+  mutationFn: (file: File) => apiUpload("/me/verification", file),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
+  onError: (e) => toast.add({ title: (e as Error).message, color: "error" }),
+});
+
+function onEvidence(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (file) verifyMutation.mutate(file);
+  if (evidenceInput.value) evidenceInput.value.value = "";
+}
 </script>
 
 <template>
   <main v-if="profile" class="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
     <header class="flex items-center justify-between">
       <h1 class="text-xl font-semibold">{{ $t("profile.title") }}</h1>
-      <UBadge :color="profile.listed ? 'success' : 'neutral'" variant="subtle">
-        {{ profile.listed ? $t("profile.listed") : $t("profile.notListed") }}
-      </UBadge>
+      <div class="flex gap-2">
+        <UBadge v-if="profile.verified" color="success" variant="subtle">✔ {{ $t("profile.verified") }}</UBadge>
+        <UBadge :color="profile.listed ? 'success' : 'neutral'" variant="subtle">
+          {{ profile.listed ? $t("profile.listed") : $t("profile.notListed") }}
+        </UBadge>
+      </div>
     </header>
 
     <UCard>
@@ -104,6 +129,9 @@ const deleteMutation = useMutation({
         <UFormField :label="$t('onboarding.bio')">
           <UTextarea v-model="form.bio" :rows="3" class="w-full" />
         </UFormField>
+        <UFormField :label="$t('onboarding.niches')">
+          <NichePicker v-model="form.niches" />
+        </UFormField>
         <div class="flex flex-wrap gap-2">
           <UBadge v-for="s in profile.social_links" :key="s.platform" color="primary" variant="subtle">
             {{ s.platform }} @{{ s.handle }} · {{ s.follower_count.toLocaleString("da-DK") }}
@@ -113,6 +141,29 @@ const deleteMutation = useMutation({
           {{ $t("profile.save") }}
         </UButton>
       </form>
+    </UCard>
+
+    <UCard v-if="!profile.verified">
+      <h2 class="mb-1 font-semibold">{{ $t("profile.verifyTitle") }}</h2>
+      <template v-if="profile.verification_status === 'pending'">
+        <UAlert color="info" variant="subtle" :description="$t('profile.verifyPending')" />
+      </template>
+      <template v-else>
+        <p class="mb-3 text-sm text-ink-600">{{ $t("profile.verifyHint") }}</p>
+        <UAlert
+          v-if="profile.verification_status === 'rejected'"
+          color="warning"
+          variant="subtle"
+          :description="$t('profile.verifyRejected')"
+          class="mb-3"
+        />
+        <label>
+          <input ref="evidenceInput" type="file" accept="image/*" class="hidden" @change="onEvidence" />
+          <UButton as="span" variant="outline" :loading="verifyMutation.isPending.value" class="cursor-pointer">
+            {{ $t("profile.verifyCta") }}
+          </UButton>
+        </label>
+      </template>
     </UCard>
   </main>
 </template>

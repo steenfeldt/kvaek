@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import CreatorProfile
+from notifications import emails as notify
 
 from .models import TIER_CONFIG, Brief, Campaign, Deal, Proposal
 
@@ -38,7 +39,9 @@ def send_brief(campaign: Campaign, creator: CreatorProfile, message: str) -> Bri
         raise DomainError("This creator already received a brief for this campaign")
     if not creator.listed:
         raise DomainError("Creator is not available")
-    return Brief.objects.create(campaign=campaign, creator=creator, message=message)
+    brief = Brief.objects.create(campaign=campaign, creator=creator, message=message)
+    notify.brief_received(brief)
+    return brief
 
 
 @transaction.atomic
@@ -75,6 +78,7 @@ def submit_proposal(brief: Brief, author: str, amount_ore: int, message: str = "
     if brief.status != Brief.Status.NEGOTIATING:
         brief.status = Brief.Status.NEGOTIATING
         brief.save(update_fields=["status", "updated_at"])
+    notify.proposal_received(proposal)
     return proposal
 
 
@@ -93,9 +97,11 @@ def accept_proposal(brief: Brief, acting_side: str) -> Deal:
     proposal.save(update_fields=["status"])
     brief.status = Brief.Status.ACCEPTED
     brief.save(update_fields=["status", "updated_at"])
-    return Deal.objects.create(
+    deal = Deal.objects.create(
         brief=brief, agreed_amount_ore=proposal.amount_ore, agreed_terms=proposal.message
     )
+    notify.deal_created(deal)
+    return deal
 
 
 @transaction.atomic

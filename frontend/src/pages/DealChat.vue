@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
 import { kr } from "../lib/format";
 
@@ -95,16 +96,19 @@ const reviewMutation = useMutation({
             {{ deal.campaign_name }} · {{ $t("deals.agreed", { amount: kr(deal.agreed_amount_ore) }) }}
           </p>
         </div>
-        <UButton
-          v-if="!deal.completed_by_me"
-          variant="outline"
-          color="neutral"
-          size="sm"
-          :loading="completeMutation.isPending.value"
-          @click="completeMutation.mutate()"
-        >
-          {{ $t("chat.markComplete") }}
-        </UButton>
+        <div class="flex items-center gap-1">
+          <ReportButton :deal-id="deal.id" />
+          <UButton
+            v-if="!deal.completed_by_me"
+            variant="outline"
+            color="neutral"
+            size="sm"
+            :loading="completeMutation.isPending.value"
+            @click="completeMutation.mutate()"
+          >
+            {{ $t("chat.markComplete") }}
+          </UButton>
+        </div>
       </div>
       <p v-if="deal.completed" class="mt-2 text-sm text-green-700">{{ $t("chat.completedBoth") }}</p>
       <template v-else>

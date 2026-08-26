@@ -1,0 +1,10 @@
+Hej,
+
+Der er kommet et nyt forslag i forhandlingen på "{{ brief.campaign.name }}": {{ amount_kr }} kr.
+{% if proposal.message %}
+"{{ proposal.message }}"
+{% endif %}
+Se forslaget og svar her: {{ frontend_url }}/briefs/{{ brief.id }}
+
+Venlig hilsen
+Kvæk

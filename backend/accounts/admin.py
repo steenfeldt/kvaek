@@ -1,5 +1,10 @@
+import secrets
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.core.mail import send_mail
+from django.utils import timezone
 
 from .models import (
     BrandProfile,
@@ -10,6 +15,7 @@ from .models import (
     SocialLink,
     User,
     VerificationRequest,
+    WaitlistEntry,
 )
 
 
@@ -54,6 +60,51 @@ class BrandProfileAdmin(admin.ModelAdmin):
 class VerificationRequestAdmin(admin.ModelAdmin):
     list_display = ["creator", "status", "created_at", "reviewed_by"]
     list_filter = ["status"]
+    actions = ["approve", "reject"]
+
+    @admin.action(description="Approve selected (marks creator verified)")
+    def approve(self, request, queryset):
+        for vr in queryset.filter(status=VerificationRequest.Status.PENDING):
+            vr.status = VerificationRequest.Status.APPROVED
+            vr.reviewed_by = request.user
+            vr.reviewed_at = timezone.now()
+            vr.save(update_fields=["status", "reviewed_by", "reviewed_at"])
+            vr.creator.verified = True
+            vr.creator.save(update_fields=["verified"])
+
+    @admin.action(description="Reject selected")
+    def reject(self, request, queryset):
+        queryset.filter(status=VerificationRequest.Status.PENDING).update(
+            status=VerificationRequest.Status.REJECTED,
+            reviewed_by=request.user,
+            reviewed_at=timezone.now(),
+        )
+
+
+@admin.register(WaitlistEntry)
+class WaitlistEntryAdmin(admin.ModelAdmin):
+    list_display = ["email", "name", "handle", "created_at", "invited_at"]
+    list_filter = [("invited_at", admin.EmptyFieldListFilter)]
+    actions = ["send_invites"]
+
+    @admin.action(description="Create invite codes and email selected")
+    def send_invites(self, request, queryset):
+        for entry in queryset.filter(invited_at__isnull=True):
+            code = f"KVAEK-{secrets.token_hex(3).upper()}"
+            InviteCode.objects.create(code=code, note=f"waitlist: {entry.email}")
+            send_mail(
+                "Din invitation er klar",
+                f"Hej{' ' + entry.name if entry.name else ''},\n\n"
+                f"Du står på ventelisten — nu er der plads til dig!\n\n"
+                f"Din invitationskode: {code}\n\n"
+                f"Opret din profil her: {settings.FRONTEND_URL}/creators\n\n"
+                f"Venlig hilsen\nKvæk",
+                None,
+                [entry.email],
+                fail_silently=False,
+            )
+            entry.invited_at = timezone.now()
+            entry.save(update_fields=["invited_at"])
 
 
 @admin.register(InviteCode)

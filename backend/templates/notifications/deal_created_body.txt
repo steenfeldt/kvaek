@@ -1,0 +1,8 @@
+Hej,
+
+I har en aftale! {{ counterpart }} og du er enige om {{ amount_kr }} kr. på kampagnen "{{ brief.campaign.name }}".
+
+Chatten er nu åben — aftal detaljerne her: {{ frontend_url }}/deals/{{ deal.id }}
+
+Venlig hilsen
+Kvæk

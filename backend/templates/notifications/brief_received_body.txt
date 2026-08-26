@@ -1,0 +1,10 @@
+Hej {{ brief.creator.display_name }},
+
+{{ brief.campaign.brand.company_name }} har sendt dig en brief på kampagnen "{{ brief.campaign.name }}":
+
+{{ brief.message }}
+
+Se briefen og svar her: {{ frontend_url }}/briefs/{{ brief.id }}
+
+Venlig hilsen
+Kvæk

@@ -1,0 +1,6 @@
+{% extends "account/email/base_message.txt" %}
+{% block content %}{% autoescape off %}{% if code %}Din bekræftelseskode:
+
+{{ code }}
+
+Indtast den i dit åbne browservindue.{% else %}Bekræft din e-mail her: {{ activate_url }}{% endif %}{% endautoescape %}{% endblock content %}

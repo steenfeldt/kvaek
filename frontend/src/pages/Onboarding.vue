@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import NichePicker from "../components/NichePicker.vue";
 import { api } from "../lib/api";
 import { useSession } from "../stores/session";
 
@@ -16,8 +17,10 @@ const busy = ref(false);
 // Invite code carried over from the signup form, when it was entered there.
 const storedInvite = sessionStorage.getItem("invite-code") ?? "";
 const creator = ref({ invite_code: storedInvite, display_name: "", city: "", bio: "" });
+const selectedNiches = ref<string[]>([]);
 const instagram = ref({ handle: "", follower_count: 0 });
 const tiktok = ref({ handle: "", follower_count: 0 });
+const acceptTerms = ref(false);
 
 const brand = ref({ company_name: "", cvr: "", website: "", city: "" });
 
@@ -44,10 +47,18 @@ async function submit() {
       ].filter((s) => s.handle.trim());
       await api("/onboarding/creator", {
         method: "POST",
-        body: JSON.stringify({ ...creator.value, social_links, niches: [] }),
+        body: JSON.stringify({
+          ...creator.value,
+          social_links,
+          niches: selectedNiches.value,
+          accept_terms: acceptTerms.value,
+        }),
       });
     } else {
-      await api("/onboarding/brand", { method: "POST", body: JSON.stringify(brand.value) });
+      await api("/onboarding/brand", {
+        method: "POST",
+        body: JSON.stringify({ ...brand.value, accept_terms: acceptTerms.value }),
+      });
     }
     sessionStorage.removeItem("signup-intent");
     sessionStorage.removeItem("invite-code");
@@ -97,7 +108,21 @@ async function submit() {
         <UInput v-model="tiktok.handle" placeholder="TikTok @" class="flex-1" />
         <UInput v-model.number="tiktok.follower_count" type="number" min="0" placeholder="Følgere" class="w-32" />
       </div>
-      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("onboarding.submit") }}</UButton>
+      <UFormField :label="$t('onboarding.niches')">
+        <NichePicker v-model="selectedNiches" />
+      </UFormField>
+      <label class="flex items-start gap-2 text-sm text-ink-600">
+        <input v-model="acceptTerms" type="checkbox" required class="mt-1" />
+        <span>
+          {{ $t("onboarding.acceptTerms") }}
+          <RouterLink to="/terms" target="_blank" class="underline">{{ $t("onboarding.termsLink") }}</RouterLink>
+          {{ $t("onboarding.and") }}
+          <RouterLink to="/privacy" target="_blank" class="underline">{{ $t("onboarding.privacyLink") }}</RouterLink>
+        </span>
+      </label>
+      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms">
+        {{ $t("onboarding.submit") }}
+      </UButton>
     </form>
 
     <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
@@ -117,7 +142,18 @@ async function submit() {
       <UFormField :label="$t('onboarding.city')">
         <UInput v-model="brand.city" class="w-full" />
       </UFormField>
-      <UButton type="submit" :loading="busy" size="xl" block>{{ $t("onboarding.submit") }}</UButton>
+      <label class="flex items-start gap-2 text-sm text-ink-600">
+        <input v-model="acceptTerms" type="checkbox" required class="mt-1" />
+        <span>
+          {{ $t("onboarding.acceptTerms") }}
+          <RouterLink to="/terms" target="_blank" class="underline">{{ $t("onboarding.termsLink") }}</RouterLink>
+          {{ $t("onboarding.and") }}
+          <RouterLink to="/privacy" target="_blank" class="underline">{{ $t("onboarding.privacyLink") }}</RouterLink>
+        </span>
+      </label>
+      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms">
+        {{ $t("onboarding.submit") }}
+      </UButton>
     </form>
 
     <UAlert v-if="error" color="error" variant="subtle" :description="error" />

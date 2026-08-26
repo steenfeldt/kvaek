@@ -35,7 +35,12 @@
     "cvr": "CVR-nummer",
     "cvrLookup": "Slå op",
     "website": "Hjemmeside",
-    "submit": "Kom i gang"
+    "submit": "Kom i gang",
+    "niches": "Nicher",
+    "acceptTerms": "Jeg accepterer",
+    "termsLink": "vilkårene",
+    "and": "og",
+    "privacyLink": "privatlivspolitikken"
   },
   "nav": {
     "deck": "Swipe",
@@ -136,7 +141,12 @@
     "saved": "Gemt",
     "listed": "Din profil er synlig for brands",
     "notListed": "Din profil er endnu ikke synlig — den gennemgås af os",
-    "verified": "Verificeret"
+    "verified": "Verificeret",
+    "verifyTitle": "Bliv verificeret",
+    "verifyHint": "Upload et screenshot af din kanal-statistik (fx Instagram Insights), så vi kan bekræfte dine følgertal. Verificerede profiler får et mærke i kortbunken.",
+    "verifyCta": "Upload dokumentation",
+    "verifyPending": "Din verificering er under behandling.",
+    "verifyRejected": "Din seneste anmodning blev afvist — prøv med et tydeligere screenshot."
   },
   "forBrands": {
     "title": "Find skabere, dit publikum kender",
@@ -163,6 +173,18 @@
     "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
     "beta": "Betaen er kun med invitation — har du fået en kode, kan du oprette din profil nu.",
     "cta": "Opret skaberprofil",
-    "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer"
+    "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer",
+    "waitlistTitle": "Ingen invitation?",
+    "waitlistSub": "Skriv dig på ventelisten, så sender vi dig en kode, når der er plads.",
+    "waitlistCta": "Skriv mig op",
+    "waitlistDone": "Du er på listen! Vi vender tilbage, når der er plads.",
+    "waitlistConsent": "Vi bruger kun dine oplysninger til at kontakte dig om betaen."
+  },
+  "report": {
+    "button": "Anmeld",
+    "title": "Anmeld",
+    "reason": "Beskriv problemet …",
+    "submit": "Send anmeldelse",
+    "sent": "Tak — vi kigger på det."
   }
 }

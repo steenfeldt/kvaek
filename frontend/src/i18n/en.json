@@ -35,7 +35,12 @@
     "cvr": "CVR number",
     "cvrLookup": "Look up",
     "website": "Website",
-    "submit": "Get started"
+    "submit": "Get started",
+    "niches": "Niches",
+    "acceptTerms": "I accept the",
+    "termsLink": "terms",
+    "and": "and the",
+    "privacyLink": "privacy policy"
   },
   "nav": {
     "deck": "Swipe",
@@ -136,7 +141,12 @@
     "saved": "Saved",
     "listed": "Your profile is visible to brands",
     "notListed": "Your profile isn't visible yet — it's under review",
-    "verified": "Verified"
+    "verified": "Verified",
+    "verifyTitle": "Get verified",
+    "verifyHint": "Upload a screenshot of your channel statistics (e.g. Instagram Insights) so we can confirm your follower counts. Verified profiles get a badge in the deck.",
+    "verifyCta": "Upload evidence",
+    "verifyPending": "Your verification is being reviewed.",
+    "verifyRejected": "Your last request was rejected — try a clearer screenshot."
   },
   "forBrands": {
     "title": "Find creators your audience knows",
@@ -163,6 +173,18 @@
     "step3d": "You set your own price in the negotiation. No commission.",
     "beta": "The beta is invite-only — if you have a code, you can create your profile now.",
     "cta": "Create creator profile",
-    "brandInstead": "Are you a business? See how it works for you"
+    "brandInstead": "Are you a business? See how it works for you",
+    "waitlistTitle": "No invite?",
+    "waitlistSub": "Join the waitlist and we'll send you a code when a spot opens.",
+    "waitlistCta": "Put me on the list",
+    "waitlistDone": "You're on the list! We'll get back to you.",
+    "waitlistConsent": "We only use your details to contact you about the beta."
+  },
+  "report": {
+    "button": "Report",
+    "title": "Report",
+    "reason": "Describe the problem …",
+    "submit": "Send report",
+    "sent": "Thanks — we'll look into it."
   }
 }

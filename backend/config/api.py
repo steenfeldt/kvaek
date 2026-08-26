@@ -5,6 +5,7 @@ from billing.api import router as billing_router
 from campaigns.api import router as campaigns_router
 from discovery.api import router as discovery_router
 from messaging.api import router as messaging_router
+from moderation.api import router as moderation_router
 
 api = NinjaAPI(title="Marketplace API")
 
@@ -19,3 +20,4 @@ api.add_router("", discovery_router)
 api.add_router("", campaigns_router)
 api.add_router("", billing_router)
 api.add_router("", messaging_router)
+api.add_router("", moderation_router)

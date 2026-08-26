@@ -10,10 +10,10 @@ MAX_DIMENSION = 800
 WEBP_QUALITY = 82
 
 
-def process_profile_image(uploaded_file) -> ContentFile:
+def process_profile_image(uploaded_file, max_dimension: int = MAX_DIMENSION) -> ContentFile:
     img = Image.open(uploaded_file)
     img = ImageOps.exif_transpose(img)
-    img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    img.thumbnail((max_dimension, max_dimension))
     if img.mode != "RGB":
         img = img.convert("RGB")
     buf = BytesIO()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, ref } from "vue";
+import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
 
 interface Social {
@@ -123,10 +124,12 @@ function swipe(direction: "like" | "pass") {
         <img v-if="top.photos[0]" :src="top.photos[0]" class="aspect-square w-full object-cover" alt="" draggable="false" />
         <div v-else class="flex aspect-square w-full items-center justify-center bg-clay-100 text-6xl">📷</div>
         <div class="flex flex-col gap-2 p-5">
-          <h2 class="text-xl font-semibold">
+          <h2 class="flex items-center gap-1 text-xl font-semibold">
             {{ top.display_name }}
             <UBadge v-if="top.verified" color="success" variant="subtle" size="sm">✔</UBadge>
             <span class="ml-1 text-sm font-normal text-ink-600">{{ top.city }}</span>
+            <span class="flex-1" />
+            <ReportButton :creator-id="top.id" />
           </h2>
           <p class="text-sm text-ink-600">{{ top.bio }}</p>
           <div class="flex flex-wrap gap-2">

@@ -32,15 +32,17 @@ def create_checkout(campaign: Campaign) -> Payment:
         activate_campaign(campaign)
         return payment
 
-    mollie_payment = _client().payments.create(
-        {
-            "amount": {"currency": "DKK", "value": f"{price_ore / 100:.2f}"},
-            "description": f"Campaign: {campaign.name} ({campaign.get_tier_display()})",
-            "redirectUrl": f"{settings.FRONTEND_URL}/campaigns/{campaign.id}/payment-return",
-            "webhookUrl": f"{settings.BACKEND_URL}/api/webhooks/mollie",
-            "metadata": {"payment_id": payment.id, "campaign_id": campaign.id},
-        }
-    )
+    payload = {
+        "amount": {"currency": "DKK", "value": f"{price_ore / 100:.2f}"},
+        "description": f"Campaign: {campaign.name} ({campaign.get_tier_display()})",
+        "redirectUrl": f"{settings.FRONTEND_URL}/campaigns/{campaign.id}/payment-return",
+        "metadata": {"payment_id": payment.id, "campaign_id": campaign.id},
+    }
+    # Mollie requires a publicly reachable webhook URL; on localhost we rely on
+    # the return page's reconcile-on-poll instead.
+    if "localhost" not in settings.BACKEND_URL and "127.0.0.1" not in settings.BACKEND_URL:
+        payload["webhookUrl"] = f"{settings.BACKEND_URL}/api/webhooks/mollie"
+    mollie_payment = _client().payments.create(payload)
     payment.mollie_payment_id = mollie_payment.id
     payment.checkout_url = mollie_payment.checkout_url
     payment.save(update_fields=["mollie_payment_id", "checkout_url", "updated_at"])

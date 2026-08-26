@@ -1,0 +1,6 @@
+{% extends "account/email/base_message.txt" %}
+{% block content %}{% autoescape off %}Nogen (forhåbentlig dig) forsøgte at oprette en konto med {{ email }}, men der findes allerede en konto med den e-mail.
+
+Log ind her: {{ password_reset_url }}
+
+Ellers kan du se bort fra denne mail.{% endautoescape %}{% endblock content %}

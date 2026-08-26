@@ -4,7 +4,17 @@ from ninja import File, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
-from .models import BrandProfile, CreatorProfile, InviteCode, NicheTag, ProfilePhoto, SocialLink
+from .models import (
+    TERMS_VERSION,
+    BrandProfile,
+    CreatorProfile,
+    InviteCode,
+    NicheTag,
+    ProfilePhoto,
+    SocialLink,
+    VerificationRequest,
+    WaitlistEntry,
+)
 from .services import process_profile_image
 
 router = Router(tags=["accounts"])
@@ -44,6 +54,7 @@ class CreatorOnboardingIn(Schema):
     bio: str = ""
     niches: list[str] = []
     social_links: list[SocialLinkIn] = []
+    accept_terms: bool = False
 
 
 class BrandOnboardingIn(Schema):
@@ -51,6 +62,7 @@ class BrandOnboardingIn(Schema):
     cvr: str = ""
     website: str = ""
     city: str = ""
+    accept_terms: bool = False
 
 
 class OnboardingOut(Schema):
@@ -62,10 +74,19 @@ def _require_no_profile(user):
         raise HttpError(409, "Account already has a profile")
 
 
+def _record_terms(user, accepted: bool):
+    if not accepted:
+        raise HttpError(422, "Terms must be accepted")
+    user.terms_accepted_at = timezone.now()
+    user.terms_version = TERMS_VERSION
+    user.save(update_fields=["terms_accepted_at", "terms_version"])
+
+
 @router.post("/onboarding/creator", response=OnboardingOut, auth=django_auth)
 @transaction.atomic
 def onboard_creator(request, payload: CreatorOnboardingIn):
     _require_no_profile(request.user)
+    _record_terms(request.user, payload.accept_terms)
     invite = (
         InviteCode.objects.select_for_update()
         .filter(code=payload.invite_code.strip(), is_active=True, used_by__isnull=True)
@@ -101,6 +122,7 @@ def onboard_creator(request, payload: CreatorOnboardingIn):
 @transaction.atomic
 def onboard_brand(request, payload: BrandOnboardingIn):
     _require_no_profile(request.user)
+    _record_terms(request.user, payload.accept_terms)
     BrandProfile.objects.create(
         user=request.user,
         company_name=payload.company_name.strip(),
@@ -159,19 +181,22 @@ class MyProfileOut(Schema):
     bio: str
     listed: bool
     verified: bool
-    niches: list[str]
+    verification_status: str | None = None
+    niches: list[NicheOut]
     social_links: list[SocialLinkOut]
     photos: list[PhotoOut]
 
 
 def _my_profile(profile: CreatorProfile) -> MyProfileOut:
+    latest_verification = profile.verification_requests.order_by("-created_at").first()
     return MyProfileOut(
         display_name=profile.display_name,
         city=profile.city,
         bio=profile.bio,
         listed=profile.listed,
         verified=profile.verified,
-        niches=[t.name for t in profile.niches.all()],
+        verification_status=latest_verification.status if latest_verification else None,
+        niches=[NicheOut(name=t.name, slug=t.slug) for t in profile.niches.all()],
         social_links=[
             SocialLinkOut(
                 platform=s.platform,
@@ -194,6 +219,7 @@ class ProfileUpdateIn(Schema):
     display_name: str | None = None
     city: str | None = None
     bio: str | None = None
+    niches: list[str] | None = None
 
 
 @router.patch("/me/profile", response=MyProfileOut, auth=django_auth)
@@ -204,6 +230,8 @@ def update_profile(request, payload: ProfileUpdateIn):
         if value is not None:
             setattr(profile, field, value.strip())
     profile.save()
+    if payload.niches is not None:
+        profile.niches.set(NicheTag.objects.filter(slug__in=payload.niches))
     return _my_profile(profile)
 
 
@@ -236,4 +264,41 @@ def delete_photo(request, photo_id: int):
         raise HttpError(404, "Photo not found")
     photo.image.delete(save=False)
     photo.delete()
+    return {"ok": True}
+
+
+@router.post("/me/verification", auth=django_auth)
+def request_verification(request, file: File[UploadedFile]):
+    profile = _creator_or_403(request)
+    if profile.verified:
+        raise HttpError(409, "Already verified")
+    if profile.verification_requests.filter(status=VerificationRequest.Status.PENDING).exists():
+        raise HttpError(409, "A verification request is already pending")
+    if file.size > MAX_UPLOAD_BYTES:
+        raise HttpError(413, "File too large")
+    try:
+        # Larger cap than profile photos — screenshots must stay legible.
+        evidence = process_profile_image(file, max_dimension=1600)
+    except Exception:
+        raise HttpError(422, "Not a valid image")
+    VerificationRequest.objects.create(creator=profile, evidence=evidence)
+    return {"status": "pending"}
+
+
+class WaitlistIn(Schema):
+    email: str
+    name: str = ""
+    handle: str = ""
+
+
+@router.post("/waitlist", auth=None)
+def join_waitlist(request, payload: WaitlistIn):
+    email = payload.email.strip().lower()
+    if "@" not in email:
+        raise HttpError(422, "Invalid email")
+    WaitlistEntry.objects.get_or_create(
+        email=email,
+        defaults={"name": payload.name.strip(), "handle": payload.handle.strip().lstrip("@")},
+    )
+    # Idempotent and non-revealing: joining twice looks identical.
     return {"ok": True}

@@ -51,11 +51,30 @@ docker compose exec backend pytest
 - **Creator-side silence**: creators only ever see aggregate shortlist counts,
   never which brands saved them.
 
+## Operations notes
+
+- **Real Mollie test-mode**: set `MOLLIE_API_KEY=test_...` in `.env` and
+  restart. On localhost the webhook URL is omitted (Mollie requires a public
+  URL) and the payment-return page's reconcile-on-poll confirms payments
+  instead; deployed environments get the webhook automatically via
+  `BACKEND_URL`.
+- **Waitlist → invites**: admin *Waitlist entries* → select → "Create invite
+  codes and email selected" generates a `KVAEK-XXXXXX` code per entry and
+  emails it.
+- **Verification**: creators upload evidence from their profile; admin
+  *Verification requests* → approve/reject actions (approve flips the
+  creator's verified badge).
+- **Terms**: acceptance (timestamp + version) is recorded on the user at
+  onboarding; bump `TERMS_VERSION` in `accounts/models.py` when the lawyer's
+  final documents replace the drafts in `frontend/src/pages/Terms.vue` /
+  `Privacy.vue`.
+
 ## Roadmap (post-MVP)
 
-- Campaign/brief/negotiation UI in the frontend (API is done; pages pending)
-- Photo upload with server-side resize (Pillow) — model exists
-- Transactional emails on brief/proposal/deal events + weekly digest (cron)
+- Weekly digest email (cron/management command)
+- Playwright E2E on the critical flows
+- Production deployment (EU host, R2/S3 media, Sentry, backups)
+- GDPR delete-account / data-export flows
 - Auto-generated profiles: Instagram/TikTok OAuth (requires registered platform
   apps — start review process once domain + privacy policy exist), stats sync,
   LLM-written bios

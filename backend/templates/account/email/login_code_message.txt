@@ -1,0 +1,6 @@
+{% extends "account/email/base_message.txt" %}
+{% block content %}{% autoescape off %}Her er din loginkode:
+
+{{ code }}
+
+Indtast den i dit åbne browservindue. Har du ikke forsøgt at logge ind, kan du se bort fra denne mail.{% endautoescape %}{% endblock content %}

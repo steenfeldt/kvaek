@@ -24,9 +24,15 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+# Bump when the legal documents change; acceptance is recorded per version.
+TERMS_VERSION = "2026-08-26-draft"
+
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
+    terms_version = models.CharField(max_length=32, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -65,6 +71,17 @@ class InviteCode(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class WaitlistEntry(models.Model):
+    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=100, blank=True)
+    handle = models.CharField(max_length=120, blank=True, help_text="Instagram/TikTok handle")
+    created_at = models.DateTimeField(auto_now_add=True)
+    invited_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.email
 
 
 class CreatorProfile(models.Model):
