@@ -13,8 +13,11 @@ def csrf(request):
     return JsonResponse({"ok": True})
 
 
+from accounts.views import verification_evidence
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("staff/verification-evidence/<int:pk>/", verification_evidence, name="verification-evidence"),
     path("_allauth/", include("allauth.headless.urls")),
     path("api/csrf", csrf),
     path("api/", api.urls),

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
+from .storage import private_storage
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -159,7 +161,7 @@ class VerificationRequest(models.Model):
         REJECTED = "rejected", "Rejected"
 
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="verification_requests")
-    evidence = models.ImageField(upload_to="verification/%Y/%m/")
+    evidence = models.ImageField(upload_to="verification/%Y/%m/", storage=private_storage)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     note = models.TextField(blank=True)
     reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")

@@ -4,7 +4,9 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.core.mail import send_mail
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 
 from .models import (
     BrandProfile,
@@ -22,8 +24,19 @@ from .models import (
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     ordering = ["email"]
-    list_display = ["email", "role", "is_staff", "date_joined"]
+    list_display = ["email", "role", "is_active", "is_staff", "date_joined"]
     search_fields = ["email"]
+    actions = ["gdpr_erase"]
+
+    @admin.action(description="GDPR: anonymize & erase selected (irreversible)")
+    def gdpr_erase(self, request, queryset):
+        from .gdpr import erase_user
+
+        for user in queryset:
+            if user == request.user or user.is_superuser:
+                self.message_user(request, f"Skipped {user.email} (self/superuser)", level="warning")
+                continue
+            self.message_user(request, f"{user.pk}: {erase_user(user)}")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups")}),
@@ -58,9 +71,18 @@ class BrandProfileAdmin(admin.ModelAdmin):
 
 @admin.register(VerificationRequest)
 class VerificationRequestAdmin(admin.ModelAdmin):
-    list_display = ["creator", "status", "created_at", "reviewed_by"]
+    list_display = ["creator", "status", "created_at", "reviewed_by", "evidence_link"]
     list_filter = ["status"]
     actions = ["approve", "reject"]
+    exclude = ["evidence"]
+    readonly_fields = ["evidence_link"]
+
+    @admin.display(description="Evidence")
+    def evidence_link(self, obj):
+        if not obj.evidence:
+            return "-"
+        url = reverse("verification-evidence", args=[obj.pk])
+        return format_html('<a href="{}" target="_blank">View evidence</a>', url)
 
     @admin.action(description="Approve selected (marks creator verified)")
     def approve(self, request, queryset):

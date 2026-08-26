@@ -64,6 +64,12 @@ docker compose exec backend pytest
 - **Verification**: creators upload evidence from their profile; admin
   *Verification requests* → approve/reject actions (approve flips the
   creator's verified badge).
+- **GDPR**: verification evidence lives in `backend/private_media/` (never
+  web-served; admins view it via an authenticated staff link). Erasure:
+  `manage.py erase_user <email>` or the admin action on Users — anonymizes
+  and deletes personal data/files while keeping legally required payment
+  records. Export: `manage.py export_user_data <email>` prints a full JSON
+  dump for portability requests.
 - **Terms**: acceptance (timestamp + version) is recorded on the user at
   onboarding; bump `TERMS_VERSION` in `accounts/models.py` when the lawyer's
   final documents replace the drafts in `frontend/src/pages/Terms.vue` /
@@ -74,7 +80,6 @@ docker compose exec backend pytest
 - Weekly digest email (cron/management command)
 - Playwright E2E on the critical flows
 - Production deployment (EU host, R2/S3 media, Sentry, backups)
-- GDPR delete-account / data-export flows
 - Auto-generated profiles: Instagram/TikTok OAuth (requires registered platform
   apps — start review process once domain + privacy policy exist), stats sync,
   LLM-written bios

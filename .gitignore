@@ -13,3 +13,4 @@ dist/
 # env & editor
 .env
 .DS_Store
+backend/private_media/
