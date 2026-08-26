@@ -1,10 +1,10 @@
 {
   "landing": {
-    "tagline": "Danske brands og skabere, der finder hinanden.",
-    "brandCta": "Find skabere",
-    "creatorCta": "Bliv skaber",
-    "brandSub": "Swipe gennem danske nano- og mikroskabere. Betal kun pr. kampagne.",
-    "creatorSub": "Gratis for skabere. Kun invitation i beta.",
+    "tagline": "Danske brands og creators, der finder hinanden.",
+    "brandCta": "Find creators",
+    "creatorCta": "Bliv creator",
+    "brandSub": "Swipe gennem danske nano- og mikro-creators. Betal kun pr. kampagne.",
+    "creatorSub": "Gratis for creators. Kun invitation i beta.",
     "haveAccount": "Har du allerede en konto?"
   },
   "auth": {
@@ -17,7 +17,7 @@
     "signup": "Opret konto",
     "noCodeLogin": "Ingen kode i indbakken? Måske har du ikke en konto endnu —",
     "noCodeSignup": "Ingen kode i indbakken? Måske har du allerede en konto —",
-    "asCreator": "som skaber",
+    "asCreator": "som creator",
     "asBrand": "som virksomhed",
     "newHere": "Ny her?",
     "getStarted": "Se hvordan det virker",
@@ -25,7 +25,7 @@
   },
   "onboarding": {
     "choose": "Hvem er du?",
-    "creator": "Jeg er skaber",
+    "creator": "Jeg er creator",
     "brand": "Jeg er en virksomhed",
     "inviteCode": "Invitationskode",
     "displayName": "Navn",
@@ -76,17 +76,17 @@
     "title": "Kampagner",
     "new": "Ny kampagne",
     "name": "Kampagnenavn",
-    "description": "Beskrivelse — hvad skal skaberne lave?",
+    "description": "Beskrivelse — hvad skal creatorne lave?",
     "create": "Opret kampagne",
     "briefsIncluded": "{count} briefs",
     "payActivate": "Betal og aktivér",
     "briefsUsed": "{used} af {total} briefs brugt",
     "empty": "Ingen kampagner endnu — opret din første ovenfor.",
-    "sendBriefs": "Send briefs til gemte skabere",
-    "briefMessage": "Din besked til skaberen — hvad går samarbejdet ud på?",
+    "sendBriefs": "Send briefs til gemte creators",
+    "briefMessage": "Din besked til creatorsn — hvad går samarbejdet ud på?",
     "send": "Send brief",
     "briefSent": "Brief sendt",
-    "noShortlisted": "Ingen gemte skabere endnu — swipe og gem nogen først.",
+    "noShortlisted": "Ingen gemte creators endnu — swipe og gem nogen først.",
     "briefsList": "Sendte briefs"
   },
   "payment": {
@@ -113,7 +113,7 @@
     "waiting": "Afventer modparten…",
     "goToChat": "Gå til chat",
     "youAre": "Du forhandler som {side}",
-    "creator": "skaber",
+    "creator": "creator",
     "brand": "virksomhed"
   },
   "deals": {
@@ -149,10 +149,10 @@
     "verifyRejected": "Din seneste anmodning blev afvist — prøv med et tydeligere screenshot."
   },
   "forBrands": {
-    "title": "Find skabere, dit publikum kender",
-    "sub": "Swipe gennem danske nano- og mikroskabere, gem dine favoritter privat, og betal kun når du vil række ud.",
+    "title": "Find creators, dit publikum kender",
+    "sub": "Swipe gennem danske nano- og mikro-creators, gem dine favoritter privat, og betal kun når du vil række ud.",
     "step1t": "Swipe og gem",
-    "step1d": "Byg din shortlist af skabere, der passer til dit brand — helt gratis.",
+    "step1d": "Byg din shortlist af creators, der passer til dit brand — helt gratis.",
     "step2t": "Opret en kampagne",
     "step2d": "Betal pr. kampagne — intet abonnement, ingen binding.",
     "step3t": "Send briefs og luk aftalen",
@@ -160,11 +160,11 @@
     "pricing": "Priser",
     "vat": "Alle priser er ekskl. moms.",
     "cta": "Opret virksomhedskonto",
-    "creatorInstead": "Er du skaber? Se hvordan det virker for dig"
+    "creatorInstead": "Er du creator? Se hvordan det virker for dig"
   },
   "forCreators": {
     "title": "Bliv opdaget af danske brands",
-    "sub": "Gratis for skabere. Lav din profil én gang — brands swiper, gemmer dig og rækker ud med konkrete opgaver.",
+    "sub": "Gratis for creators. Lav din profil én gang — brands swiper, gemmer dig og rækker ud med konkrete opgaver.",
     "step1t": "Lav din profil",
     "step1d": "Billeder, din niche og dine kanaler. Det tager under tre minutter.",
     "step2t": "Bliv gemt af brands",
@@ -172,7 +172,7 @@
     "step3t": "Modtag briefs og tjen penge",
     "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
     "beta": "Betaen er kun med invitation — har du fået en kode, kan du oprette din profil nu.",
-    "cta": "Opret skaberprofil",
+    "cta": "Opret creator-profil",
     "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer",
     "waitlistTitle": "Ingen invitation?",
     "waitlistSub": "Skriv dig på ventelisten, så sender vi dig en kode, når der er plads.",
