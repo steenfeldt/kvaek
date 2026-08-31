@@ -214,6 +214,33 @@
     "companyTitle": "Virksomhedsoplysninger",
     "companySaved": "Virksomhedsoplysninger gemt."
   },
+  "dashboard": {
+    "yourWeek": "Din uge",
+    "morning": "Godmorgen",
+    "afternoon": "Goddag",
+    "evening": "Godaften",
+    "waitingOnYou": "Venter på dig",
+    "waitingSub": "Nye forslag i kø",
+    "activeCampaigns": "Aktive kampagner",
+    "activeSub": "Kører nu",
+    "dealsInFlight": "Aftaler i gang",
+    "dealsSub": "Aftalt, ikke afsluttet",
+    "newInPool": "Nye i poolen",
+    "poolTotal": "{total} creators i alt",
+    "poolInCity": "{count} i {city}",
+    "ctaEyebrow": "Klar til næste træk?",
+    "ctaTitle": "Start en kampagne — eller swipe først?",
+    "ctaBody": "Aktivér en kampagne nu — eller udforsk poolen lidt endnu.",
+    "startCampaign": "Start kampagne",
+    "startSwiping": "Swipe videre"
+  },
+  "kvaekker": {
+    "tease": "Trænger du til en pause? Spil Kvækker",
+    "hint": "Brug piletasterne — få frøen sikkert over vejen.",
+    "score": "Point",
+    "gameOver": "Game over!",
+    "playAgain": "Spil igen"
+  },
   "welcomePrompt": {
     "title": "Velkommen til Kvæk!",
     "body": "Du logger ind med en engangskode på e-mail — det kan du blive ved med. Foretrækker du en adgangskode, kan du oprette en nu. Du kan altid ændre det under Konto.",

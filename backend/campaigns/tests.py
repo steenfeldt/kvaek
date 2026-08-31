@@ -114,3 +114,22 @@ def test_deal_completion_needs_both_sides(brief):
     services.mark_deal_completed(deal, "creator")
     deal.refresh_from_db()
     assert deal.completed
+
+
+def test_brand_dashboard_counts(client, active_campaign, brand, creator):
+    brief = services.send_brief(active_campaign, creator, "hi")
+    services.submit_proposal(brief, Proposal.Author.CREATOR, 50000)
+    client.force_login(brand.user)
+    data = client.get("/api/dashboard/brand").json()
+    assert data["company_name"] == "Café Test"
+    assert data["waiting_proposals"] == 1
+    assert data["active_campaigns"] == 1
+    assert data["deals_in_flight"] == 0
+    assert data["pool_total"] == 1
+    assert [c["display_name"] for c in data["new_in_pool"]] == ["Test Creator"]
+
+    # Accepting turns the open proposal into an in-flight deal.
+    services.accept_proposal(brief, "brand")
+    data = client.get("/api/dashboard/brand").json()
+    assert data["waiting_proposals"] == 0
+    assert data["deals_in_flight"] == 1

@@ -29,10 +29,11 @@ function toggleLocale() {
     <div class="min-h-screen">
       <header v-if="session.authenticated && session.role" class="border-b border-clay-200 bg-white">
         <nav class="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2 text-sm">
-          <RouterLink :to="session.role === 'brand' ? '/deck' : '/home'" class="mr-2">
+          <RouterLink :to="session.role === 'brand' ? '/dashboard' : '/home'" class="mr-2">
             <img src="/logo.png" alt="Kvæk" class="h-8 w-8 rounded-lg" />
           </RouterLink>
           <template v-if="session.role === 'brand'">
+            <UButton to="/dashboard" variant="ghost" color="neutral" class="navlink">{{ $t("nav.home") }}</UButton>
             <UButton to="/deck" variant="ghost" color="neutral" class="navlink">{{ $t("nav.deck") }}</UButton>
             <UButton to="/campaigns" variant="ghost" color="neutral" class="navlink">{{ $t("nav.campaigns") }}</UButton>
           </template>

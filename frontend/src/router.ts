@@ -11,6 +11,11 @@ const routes = [
   { path: "/terms", component: () => import("./pages/Terms.vue") },
   { path: "/privacy", component: () => import("./pages/Privacy.vue") },
   { path: "/onboarding", component: () => import("./pages/Onboarding.vue"), meta: { auth: true } },
+  {
+    path: "/dashboard",
+    component: () => import("./pages/Dashboard.vue"),
+    meta: { auth: true, role: "brand" },
+  },
   { path: "/deck", component: () => import("./pages/Deck.vue"), meta: { auth: true, role: "brand" } },
   { path: "/campaigns", component: () => import("./pages/Campaigns.vue"), meta: { auth: true, role: "brand" } },
   {

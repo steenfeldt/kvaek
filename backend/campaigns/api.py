@@ -345,3 +345,54 @@ def complete_deal(request, deal_id: int):
     _domain(services.mark_deal_completed, deal, side)
     deal.refresh_from_db()
     return _deal_out(deal, request.user)
+
+
+class PoolCreatorOut(Schema):
+    id: int
+    display_name: str
+    city: str
+    photo: str | None = None
+
+
+class BrandDashboardOut(Schema):
+    company_name: str
+    city: str
+    waiting_proposals: int
+    active_campaigns: int
+    deals_in_flight: int
+    pool_total: int
+    pool_in_city: int
+    new_in_pool: list[PoolCreatorOut]
+
+
+@router.get("/dashboard/brand", response=BrandDashboardOut)
+def brand_dashboard(request):
+    brand = _brand_or_403(request)
+    pool = CreatorProfile.objects.filter(listed=True)
+    newest = pool.prefetch_related("photos").order_by("-created_at")[:4]
+    return BrandDashboardOut(
+        company_name=brand.company_name,
+        city=brand.city,
+        # Open creator proposals await the brand's answer.
+        waiting_proposals=Proposal.objects.filter(
+            brief__campaign__brand=brand,
+            status=Proposal.Status.OPEN,
+            author=Proposal.Author.CREATOR,
+        ).count(),
+        active_campaigns=brand.campaigns.filter(status=Campaign.Status.ACTIVE).count(),
+        deals_in_flight=Deal.objects.filter(brief__campaign__brand=brand)
+        .exclude(brand_completed_at__isnull=False, creator_completed_at__isnull=False)
+        .count(),
+        pool_total=pool.count(),
+        pool_in_city=pool.filter(city__iexact=brand.city).count() if brand.city else 0,
+        # Photo + name/city only — no handles or links pre-deal (anti-circumvention).
+        new_in_pool=[
+            PoolCreatorOut(
+                id=p.id,
+                display_name=p.display_name,
+                city=p.city,
+                photo=photos[0].image.url if (photos := list(p.photos.all())) else None,
+            )
+            for p in newest
+        ],
+    )

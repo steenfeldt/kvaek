@@ -25,7 +25,7 @@ export const useSession = defineStore("session", {
     postLoginRoute(intent?: string): string {
       if (!this.authenticated) return "/auth";
       if (!this.role) return intent ? `/onboarding?role=${intent}` : "/onboarding";
-      return this.role === "brand" ? "/deck" : "/home";
+      return this.role === "brand" ? "/dashboard" : "/home";
     },
   },
 });

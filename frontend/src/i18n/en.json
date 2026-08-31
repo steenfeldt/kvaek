@@ -214,6 +214,33 @@
     "companyTitle": "Company details",
     "companySaved": "Company details saved."
   },
+  "dashboard": {
+    "yourWeek": "Your week",
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "waitingOnYou": "Waiting on you",
+    "waitingSub": "New proposals in queue",
+    "activeCampaigns": "Active campaigns",
+    "activeSub": "Running now",
+    "dealsInFlight": "Deals in flight",
+    "dealsSub": "Agreed, not finished",
+    "newInPool": "New in the pool",
+    "poolTotal": "{total} creators total",
+    "poolInCity": "{count} in {city}",
+    "ctaEyebrow": "Ready for the next move?",
+    "ctaTitle": "Run a campaign — or browse creators first?",
+    "ctaBody": "Activate a campaign now — or keep exploring the pool first.",
+    "startCampaign": "Start campaign",
+    "startSwiping": "Start swiping"
+  },
+  "kvaekker": {
+    "tease": "Need a break? Play Kvækker",
+    "hint": "Use the arrow keys — get the frog safely across the road.",
+    "score": "Score",
+    "gameOver": "Game over!",
+    "playAgain": "Play again"
+  },
   "welcomePrompt": {
     "title": "Welcome to Kvæk!",
     "body": "You log in with a one-time email code — you're welcome to keep doing that. If you'd rather use a password, you can set one now. You can always change this under Account.",
