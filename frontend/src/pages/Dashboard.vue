@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
-import { computed, ref } from "vue";
-import { useI18n } from "vue-i18n";
+import { ref } from "vue";
 import KvaekkerGame from "../components/KvaekkerGame.vue";
 import { api } from "../lib/api";
+import { useGreeting } from "../lib/greeting";
 
 interface PoolCreator {
   id: number;
@@ -23,26 +23,11 @@ interface Dashboard {
   new_in_pool: PoolCreator[];
 }
 
-const { t, locale } = useI18n();
 const { data } = useQuery({
   queryKey: ["brand-dashboard"],
   queryFn: () => api<Dashboard>("/dashboard/brand"),
 });
-
-const today = computed(() =>
-  new Date().toLocaleDateString(locale.value === "da" ? "da-DK" : "en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }),
-);
-const greeting = computed(() => {
-  const h = new Date().getHours();
-  if (h < 5 || h >= 18) return t("dashboard.evening");
-  if (h < 12) return t("dashboard.morning");
-  return t("dashboard.afternoon");
-});
-
+const { today, greeting } = useGreeting();
 const gameOpen = ref(false);
 </script>
 

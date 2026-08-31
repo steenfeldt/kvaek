@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Q
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
@@ -395,4 +396,43 @@ def brand_dashboard(request):
             )
             for p in newest
         ],
+    )
+
+
+class CreatorDashboardOut(Schema):
+    display_name: str
+    city: str
+    waiting_briefs: int
+    deals_in_flight: int
+    listed: bool
+    profile_complete: bool
+
+
+@router.get("/dashboard/creator", response=CreatorDashboardOut)
+def creator_dashboard(request):
+    creator = _creator_or_403(request)
+    # A brief waits on the creator when it is unanswered, or the brand's
+    # counter-proposal is the open one.
+    waiting = (
+        Brief.objects.filter(creator=creator)
+        .filter(
+            Q(status=Brief.Status.SENT)
+            | Q(
+                status=Brief.Status.NEGOTIATING,
+                proposals__status=Proposal.Status.OPEN,
+                proposals__author=Proposal.Author.BRAND,
+            )
+        )
+        .distinct()
+        .count()
+    )
+    return CreatorDashboardOut(
+        display_name=creator.display_name,
+        city=creator.city,
+        waiting_briefs=waiting,
+        deals_in_flight=Deal.objects.filter(brief__creator=creator)
+        .exclude(brand_completed_at__isnull=False, creator_completed_at__isnull=False)
+        .count(),
+        listed=creator.listed,
+        profile_complete=creator.meets_listing_bar(),
     )

@@ -234,6 +234,18 @@
     "startCampaign": "Start kampagne",
     "startSwiping": "Swipe videre"
   },
+  "creatorDash": {
+    "waitingSub": "Briefs, der venter på svar",
+    "saved": "Gemt af brands",
+    "savedSub": "De seneste 7 dage",
+    "ctaListedTitle": "Din profil er synlig i poolen",
+    "ctaListedBody": "Nye briefs lander her, når brands rækker ud. Hold din profil skarp — den er dit udstillingsvindue.",
+    "ctaNotListedTitle": "Gør din profil færdig",
+    "ctaNotListedBody": "Profiler med foto, sociale links og nicher kommer i poolen, hvor brands swiper.",
+    "seeBriefs": "Se briefs",
+    "seeProfile": "Se din profil",
+    "completeProfile": "Udfyld profil"
+  },
   "kvaekker": {
     "tease": "Trænger du til en pause? Spil Kvækker",
     "hint": "Brug piletasterne — få frøen sikkert over vejen.",

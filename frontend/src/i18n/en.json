@@ -234,6 +234,18 @@
     "startCampaign": "Start campaign",
     "startSwiping": "Start swiping"
   },
+  "creatorDash": {
+    "waitingSub": "Briefs awaiting your reply",
+    "saved": "Saved by brands",
+    "savedSub": "Last 7 days",
+    "ctaListedTitle": "Your profile is live in the pool",
+    "ctaListedBody": "New briefs land here when brands reach out. Keep your profile sharp — it's your shop window.",
+    "ctaNotListedTitle": "Finish your profile",
+    "ctaNotListedBody": "Profiles with a photo, social links and niches enter the pool where brands swipe.",
+    "seeBriefs": "See briefs",
+    "seeProfile": "View your profile",
+    "completeProfile": "Complete profile"
+  },
   "kvaekker": {
     "tease": "Need a break? Play Kvækker",
     "hint": "Use the arrow keys — get the frog safely across the road.",

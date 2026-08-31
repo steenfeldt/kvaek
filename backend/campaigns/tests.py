@@ -133,3 +133,24 @@ def test_brand_dashboard_counts(client, active_campaign, brand, creator):
     data = client.get("/api/dashboard/brand").json()
     assert data["waiting_proposals"] == 0
     assert data["deals_in_flight"] == 1
+
+
+def test_creator_dashboard_counts(client, active_campaign, creator):
+    brief = services.send_brief(active_campaign, creator, "hi")
+    client.force_login(creator.user)
+    data = client.get("/api/dashboard/creator").json()
+    assert data["display_name"] == "Test Creator"
+    assert data["waiting_briefs"] == 1  # unanswered brief
+    assert data["deals_in_flight"] == 0
+    assert data["listed"] is True
+
+    # Creator proposes -> ball is with the brand; brand counters -> back to creator.
+    services.submit_proposal(brief, Proposal.Author.CREATOR, 50000)
+    assert client.get("/api/dashboard/creator").json()["waiting_briefs"] == 0
+    services.submit_proposal(brief, Proposal.Author.BRAND, 40000)
+    assert client.get("/api/dashboard/creator").json()["waiting_briefs"] == 1
+
+    services.accept_proposal(brief, "creator")
+    data = client.get("/api/dashboard/creator").json()
+    assert data["waiting_briefs"] == 0
+    assert data["deals_in_flight"] == 1
