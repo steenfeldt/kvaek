@@ -7,6 +7,7 @@ interface Me {
   role?: "creator" | "brand" | null;
   display_name?: string | null;
   is_staff?: boolean;
+  prompt_password_setup?: boolean;
 }
 
 export const useSession = defineStore("session", {

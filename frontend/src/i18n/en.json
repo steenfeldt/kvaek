@@ -214,6 +214,12 @@
     "companyTitle": "Company details",
     "companySaved": "Company details saved."
   },
+  "welcomePrompt": {
+    "title": "Welcome to Kvæk!",
+    "body": "You log in with a one-time email code — you're welcome to keep doing that. If you'd rather use a password, you can set one now. You can always change this under Account.",
+    "setPassword": "Set a password",
+    "keepCode": "Keep one-time codes"
+  },
   "reset": {
     "title": "Choose a new password",
     "submit": "Save password",

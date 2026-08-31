@@ -3,6 +3,7 @@ import { da, en } from "@nuxt/ui/locale";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import WelcomePasswordPrompt from "./components/WelcomePasswordPrompt.vue";
 import { allauth } from "./lib/api";
 import { useSession } from "./stores/session";
 
@@ -52,6 +53,7 @@ function toggleLocale() {
         </nav>
       </header>
       <RouterView />
+      <WelcomePasswordPrompt />
     </div>
   </UApp>
 </template>

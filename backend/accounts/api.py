@@ -26,6 +26,7 @@ class MeOut(Schema):
     role: str | None = None
     display_name: str | None = None
     is_staff: bool = False
+    prompt_password_setup: bool = False
 
 
 @router.get("/me", response=MeOut, auth=None)
@@ -45,7 +46,24 @@ def me(request):
         role=role,
         display_name=display_name,
         is_staff=user.is_staff,
+        # Offer a password only to code-only users (Google users don't need
+        # one), and only until they set one or explicitly decline.
+        prompt_password_setup=(
+            not user.has_usable_password()
+            and user.password_prompt_dismissed_at is None
+            and not user.socialaccount_set.exists()
+        ),
     )
+
+
+@router.post("/me/password-prompt/dismiss", auth=django_auth)
+def dismiss_password_prompt(request):
+    """The user chose to keep email-code login — never ask again."""
+    user = request.user
+    if user.password_prompt_dismissed_at is None:
+        user.password_prompt_dismissed_at = timezone.now()
+        user.save(update_fields=["password_prompt_dismissed_at"])
+    return {"ok": True}
 
 
 class SocialLinkIn(Schema):

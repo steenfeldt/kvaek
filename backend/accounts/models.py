@@ -35,6 +35,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     terms_accepted_at = models.DateTimeField(null=True, blank=True)
     terms_version = models.CharField(max_length=32, blank=True)
+    # Set when the user answers the first-login "want a password?" prompt with
+    # "keep email codes" — once set, the prompt never comes back.
+    password_prompt_dismissed_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

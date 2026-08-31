@@ -62,3 +62,31 @@ def test_export_contains_core_data(creator_user):
     assert data["user"]["email"] == "creator-erase@example.com"
     assert data["creator_profile"]["display_name"] == "Slet Mig"
     assert len(data["creator_profile"]["photos"]) == 1
+
+
+def test_me_prompts_code_only_user_for_password(client, db):
+    user = User.objects.create_user("code-only@example.com")
+    client.force_login(user)
+    assert client.get("/api/me").json()["prompt_password_setup"] is True
+
+
+def test_me_does_not_prompt_with_password_or_google(client, db):
+    from allauth.socialaccount.models import SocialAccount
+
+    with_password = User.objects.create_user("has-pw@example.com", password="s3cret-s3cret")
+    client.force_login(with_password)
+    assert client.get("/api/me").json()["prompt_password_setup"] is False
+
+    google = User.objects.create_user("google@example.com")
+    SocialAccount.objects.create(user=google, provider="google", uid="g-123")
+    client.force_login(google)
+    assert client.get("/api/me").json()["prompt_password_setup"] is False
+
+
+def test_password_prompt_dismiss_is_permanent(client, db):
+    user = User.objects.create_user("keeps-codes@example.com")
+    client.force_login(user)
+    assert client.post("/api/me/password-prompt/dismiss").status_code == 200
+    user.refresh_from_db()
+    assert user.password_prompt_dismissed_at is not None
+    assert client.get("/api/me").json()["prompt_password_setup"] is False

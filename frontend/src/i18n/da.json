@@ -214,6 +214,12 @@
     "companyTitle": "Virksomhedsoplysninger",
     "companySaved": "Virksomhedsoplysninger gemt."
   },
+  "welcomePrompt": {
+    "title": "Velkommen til Kvæk!",
+    "body": "Du logger ind med en engangskode på e-mail — det kan du blive ved med. Foretrækker du en adgangskode, kan du oprette en nu. Du kan altid ændre det under Konto.",
+    "setPassword": "Opret adgangskode",
+    "keepCode": "Fortsæt med engangskode"
+  },
   "reset": {
     "title": "Vælg ny adgangskode",
     "submit": "Gem adgangskode",
