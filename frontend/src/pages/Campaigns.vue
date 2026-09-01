@@ -49,7 +49,7 @@ const createMutation = useMutation({
             v-for="t in tiers"
             :key="t.tier"
             class="cursor-pointer rounded-xl border-2 p-4 text-center"
-            :class="form.tier === t.tier ? 'border-clay-600 bg-clay-50' : 'border-clay-200'"
+            :class="form.tier === t.tier ? 'border-sage-600 bg-sage-50' : 'border-clay-200'"
           >
             <input v-model="form.tier" type="radio" :value="t.tier" class="hidden" />
             <span class="block font-semibold capitalize">{{ t.tier }}</span>

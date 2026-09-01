@@ -83,10 +83,10 @@ async function submit() {
     <template v-if="!role">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.choose") }}</h1>
       <div class="grid gap-3">
-        <button class="rounded-xl border-2 border-clay-200 bg-white p-4 text-left hover:border-clay-500" @click="role = 'creator'">
+        <button class="rounded-xl border-2 border-clay-200 bg-white p-4 text-left hover:border-sage-500" @click="role = 'creator'">
           {{ $t("onboarding.creator") }}
         </button>
-        <button class="rounded-xl border-2 border-clay-200 bg-white p-4 text-left hover:border-clay-500" @click="role = 'brand'">
+        <button class="rounded-xl border-2 border-clay-200 bg-white p-4 text-left hover:border-sage-500" @click="role = 'brand'">
           {{ $t("onboarding.brand") }}
         </button>
       </div>

@@ -122,7 +122,7 @@ const reviewMutation = useMutation({
         v-for="m in messages"
         :key="m.id"
         class="max-w-[80%] rounded-2xl px-4 py-2"
-        :class="m.mine ? 'ml-auto bg-clay-600 text-white' : 'bg-white shadow-sm'"
+        :class="m.mine ? 'ml-auto bg-sage-600 text-white' : 'bg-white shadow-sm'"
       >
         <p class="whitespace-pre-wrap">{{ m.body }}</p>
       </div>

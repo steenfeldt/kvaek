@@ -31,8 +31,8 @@ function toggle(slug: string) {
       class="rounded-full border px-3 py-1 text-sm transition"
       :class="
         model.includes(n.slug)
-          ? 'border-clay-600 bg-clay-600 text-white'
-          : 'border-clay-200 bg-white text-ink-600 hover:border-clay-500'
+          ? 'border-sage-600 bg-sage-600 text-white'
+          : 'border-clay-200 bg-white text-ink-600 hover:border-sage-500'
       "
       @click="toggle(n.slug)"
     >

@@ -9,9 +9,10 @@
 }
 
 /* Own design system — warm/editorial, from the brand palette:
-   terracotta #C17A56 (clay ramp, primary), sage #8FA687, støvet blå #93B7C9
-   (fjord ramp), sand #EFE7D8 (surface). Ink stays the warm text colors,
-   cream the page ground (a light sand tint).
+   sage #8FA687 = primary (CTAs/actions), terracotta #C17A56 (clay ramp) =
+   secondary (badges/highlights), støvet blå #93B7C9 (fjord ramp) =
+   links/data, sand #EFE7D8 = page ground. Ink stays the warm text colors,
+   cream a lighter surface tint.
    `static` because Nuxt UI's runtime color plugin references sage/fjord vars
    from JS — without it Tailwind prunes ramps unused in markup. */
 @theme static {
@@ -55,6 +56,6 @@
 }
 
 body {
-  background-color: var(--color-cream);
+  background-color: var(--color-sand);
   color: var(--color-ink-900);
 }

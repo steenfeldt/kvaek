@@ -12,9 +12,11 @@ export default defineConfig({
       // the system scheme and our light-only design breaks.
       colorMode: false,
       ui: {
+        // Palette roles per the brand sheet: sage = primary actions,
+        // terracotta (clay) = secondary/badges, fjord = links/data/info.
         colors: {
-          primary: "clay",
-          secondary: "fjord",
+          primary: "sage",
+          secondary: "clay",
           success: "sage",
           info: "fjord",
           neutral: "stone",

@@ -131,7 +131,7 @@ const briefMutation = useMutation({
       <a
         v-if="campaign.invoice_id"
         :href="`/api/invoices/${campaign.invoice_id}/pdf`"
-        class="mt-3 block text-sm text-clay-700 underline"
+        class="mt-3 block text-sm text-fjord-700 underline"
       >
         {{ $t("campaigns.invoiceDownload", { number: campaign.invoice_number }) }}
       </a>

@@ -109,7 +109,7 @@ function onEvidence(event: Event) {
         </div>
         <label
           v-if="profile.photos.length < 6"
-          class="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-clay-200 text-ink-600 hover:border-clay-500"
+          class="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-clay-200 text-ink-600 hover:border-sage-500"
         >
           <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFile" />
           <span v-if="uploadMutation.isPending.value">…</span>

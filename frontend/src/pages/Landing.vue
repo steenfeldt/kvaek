@@ -19,14 +19,14 @@ function login() {
     <h1 class="text-4xl font-semibold tracking-tight">{{ $t("landing.tagline") }}</h1>
     <div class="grid w-full gap-4 sm:grid-cols-2">
       <button
-        class="rounded-2xl bg-clay-600 p-6 text-left text-white transition hover:bg-clay-700"
+        class="rounded-2xl bg-sage-600 p-6 text-left text-white transition hover:bg-sage-700"
         @click="go('brand')"
       >
         <span class="block text-xl font-semibold">{{ $t("landing.brandCta") }}</span>
         <span class="mt-2 block text-sm opacity-80">{{ $t("landing.brandSub") }}</span>
       </button>
       <button
-        class="rounded-2xl border-2 border-clay-200 bg-white p-6 text-left transition hover:border-clay-500"
+        class="rounded-2xl border-2 border-clay-200 bg-white p-6 text-left transition hover:border-sage-500"
         @click="go('creator')"
       >
         <span class="block text-xl font-semibold">{{ $t("landing.creatorCta") }}</span>
@@ -35,7 +35,7 @@ function login() {
     </div>
     <p class="text-sm text-ink-600">
       {{ $t("landing.haveAccount") }}
-      <button class="font-medium text-clay-700 underline" @click="login">{{ $t("auth.login") }}</button>
+      <button class="font-medium text-fjord-700 underline" @click="login">{{ $t("auth.login") }}</button>
     </p>
   </main>
 </template>

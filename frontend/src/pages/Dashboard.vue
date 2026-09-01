@@ -48,21 +48,21 @@ const gameOpen = ref(false);
       v-if="data"
       class="grid grid-cols-1 divide-y divide-clay-200 border-y border-clay-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
     >
-      <RouterLink to="/briefs" class="px-5 py-6 transition-colors hover:bg-clay-50">
+      <RouterLink to="/briefs" class="px-5 py-6 transition-colors hover:bg-cream">
         <p class="text-xs font-semibold uppercase tracking-widest text-ink-600">
           {{ $t("dashboard.waitingOnYou") }}
         </p>
         <p class="mt-2 text-4xl font-semibold text-clay-600">{{ data.waiting_proposals }}</p>
         <p class="mt-1 text-sm text-ink-600">{{ $t("dashboard.waitingSub") }}</p>
       </RouterLink>
-      <RouterLink to="/campaigns" class="px-5 py-6 transition-colors hover:bg-clay-50">
+      <RouterLink to="/campaigns" class="px-5 py-6 transition-colors hover:bg-cream">
         <p class="text-xs font-semibold uppercase tracking-widest text-ink-600">
           {{ $t("dashboard.activeCampaigns") }}
         </p>
         <p class="mt-2 text-4xl font-semibold text-fjord-600">{{ data.active_campaigns }}</p>
         <p class="mt-1 text-sm text-ink-600">{{ $t("dashboard.activeSub") }}</p>
       </RouterLink>
-      <RouterLink to="/deals" class="px-5 py-6 transition-colors hover:bg-clay-50">
+      <RouterLink to="/deals" class="px-5 py-6 transition-colors hover:bg-cream">
         <p class="text-xs font-semibold uppercase tracking-widest text-ink-600">
           {{ $t("dashboard.dealsInFlight") }}
         </p>
@@ -101,7 +101,7 @@ const gameOpen = ref(false);
       </div>
     </section>
 
-    <section class="rounded-2xl bg-sand p-8">
+    <section class="rounded-2xl bg-white p-8">
       <p class="text-xs font-semibold uppercase tracking-widest text-clay-700">
         {{ $t("dashboard.ctaEyebrow") }}
       </p>

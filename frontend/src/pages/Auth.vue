@@ -188,11 +188,11 @@ function toLogin() {
     <p class="text-center text-sm text-ink-600">
       <template v-if="mode === 'login'">
         {{ $t("auth.newHere") }}
-        <RouterLink to="/" class="font-medium text-clay-700 underline">{{ $t("auth.getStarted") }}</RouterLink>
+        <RouterLink to="/" class="font-medium text-fjord-700 underline">{{ $t("auth.getStarted") }}</RouterLink>
       </template>
       <template v-else>
         {{ $t("landing.haveAccount") }}
-        <button type="button" class="font-medium text-clay-700 underline" @click="toLogin">
+        <button type="button" class="font-medium text-fjord-700 underline" @click="toLogin">
           {{ $t("auth.login") }}
         </button>
       </template>
