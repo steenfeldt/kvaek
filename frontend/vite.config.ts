@@ -1,6 +1,7 @@
 import ui from "@nuxt/ui/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const backend = process.env.VITE_BACKEND_URL || "http://localhost:8000";
 
@@ -21,6 +22,30 @@ export default defineConfig({
           info: "fjord",
           neutral: "stone",
         },
+      },
+    }),
+    VitePWA({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "Kvæk",
+        short_name: "Kvæk",
+        description:
+          "Swipe-baseret markedsplads, hvor danske virksomheder og nano/mikro-creators finder hinanden.",
+        lang: "da",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#efe7d8",
+        theme_color: "#efe7d8",
+        icons: [
+          { src: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/logo.png", sizes: "512x512", type: "image/png" },
+          { src: "/logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
+      },
+      workbox: {
+        // Never let the SPA fallback or cache swallow server routes.
+        navigateFallbackDenylist: [/^\/api/, /^\/_allauth/, /^\/admin/, /^\/staff/, /^\/media/, /^\/static/],
+        globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
       },
     }),
   ],
