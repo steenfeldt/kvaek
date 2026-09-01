@@ -8,23 +8,50 @@
   color-scheme: light;
 }
 
-/* Own design system — warm/editorial. Clay is the brand ramp (from the logo),
-   ink the warm text colors, cream the page ground. */
-@theme {
-  --color-clay-50: #faf5f0;
-  --color-clay-100: #f4e8dd;
-  --color-clay-200: #e8d0bc;
-  --color-clay-300: #dcb59a;
-  --color-clay-400: #d29276;
-  --color-clay-500: #c96f4a;
-  --color-clay-600: #b25532;
-  --color-clay-700: #93432a;
-  --color-clay-800: #763726;
-  --color-clay-900: #5f2e22;
-  --color-clay-950: #33170f;
+/* Own design system — warm/editorial, from the brand palette:
+   terracotta #C17A56 (clay ramp, primary), sage #8FA687, støvet blå #93B7C9
+   (fjord ramp), sand #EFE7D8 (surface). Ink stays the warm text colors,
+   cream the page ground (a light sand tint).
+   `static` because Nuxt UI's runtime color plugin references sage/fjord vars
+   from JS — without it Tailwind prunes ramps unused in markup. */
+@theme static {
+  --color-clay-50: #faf6f2;
+  --color-clay-100: #f4e9e0;
+  --color-clay-200: #e8d1c1;
+  --color-clay-300: #dab39c;
+  --color-clay-400: #ce9678;
+  --color-clay-500: #c17a56;
+  --color-clay-600: #ab6141;
+  --color-clay-700: #8e4d33;
+  --color-clay-800: #74402c;
+  --color-clay-900: #5f3627;
+  --color-clay-950: #331b12;
+  --color-sage-50: #f4f7f3;
+  --color-sage-100: #e6ece3;
+  --color-sage-200: #cedac9;
+  --color-sage-300: #aec3a8;
+  --color-sage-400: #8fa687;
+  --color-sage-500: #6f8a67;
+  --color-sage-600: #587050;
+  --color-sage-700: #475a42;
+  --color-sage-800: #3b4a37;
+  --color-sage-900: #323e2f;
+  --color-sage-950: #192118;
+  --color-fjord-50: #f2f7f9;
+  --color-fjord-100: #e4edf2;
+  --color-fjord-200: #cbdde6;
+  --color-fjord-300: #accbd9;
+  --color-fjord-400: #93b7c9;
+  --color-fjord-500: #6f9bb2;
+  --color-fjord-600: #588098;
+  --color-fjord-700: #4a697c;
+  --color-fjord-800: #405867;
+  --color-fjord-900: #384a56;
+  --color-fjord-950: #253039;
   --color-ink-900: #2b2118;
   --color-ink-600: #6b5d4f;
-  --color-cream: #fdfaf6;
+  --color-sand: #efe7d8;
+  --color-cream: #faf7f0;
 }
 
 body {

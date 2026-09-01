@@ -14,6 +14,9 @@ export default defineConfig({
       ui: {
         colors: {
           primary: "clay",
+          secondary: "fjord",
+          success: "sage",
+          info: "fjord",
           neutral: "stone",
         },
       },
