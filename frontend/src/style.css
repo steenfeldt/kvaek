@@ -59,3 +59,12 @@ body {
   background-color: var(--color-sand);
   color: var(--color-ink-900);
 }
+
+/* White content card for forms that would otherwise sit directly on the
+   sand ground (UCard covers the rest). */
+.surface {
+  border-radius: 1rem;
+  background-color: white;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}

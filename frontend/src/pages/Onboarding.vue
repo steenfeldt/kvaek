@@ -74,7 +74,7 @@ async function submit() {
 
 <template>
   <main class="mx-auto flex max-w-md flex-col gap-6 px-6 pt-12 pb-10 sm:pt-16">
-    <UAlert v-if="session.me?.is_staff" color="info" variant="subtle">
+    <UAlert v-if="session.me?.is_staff" color="info" variant="outline" class="bg-white">
       <template #description>
         {{ $t("onboarding.staffNote") }}
         <a href="/admin/" class="font-medium underline">{{ $t("onboarding.staffLink") }}</a>
@@ -92,7 +92,7 @@ async function submit() {
       </div>
     </template>
 
-    <form v-else-if="role === 'creator'" class="flex flex-col gap-4" @submit.prevent="submit">
+    <form v-else-if="role === 'creator'" class="surface flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.creator") }}</h1>
       <UFormField v-if="!storedInvite" :label="$t('onboarding.inviteCode')" required>
         <UInput v-model="creator.invite_code" required class="w-full" />
@@ -131,7 +131,7 @@ async function submit() {
       </UButton>
     </form>
 
-    <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
+    <form v-else class="surface flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.brand") }}</h1>
       <UFormField :label="$t('onboarding.cvr')" required>
         <div class="flex gap-2">
@@ -162,6 +162,6 @@ async function submit() {
       </UButton>
     </form>
 
-    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
+    <UAlert v-if="error" color="error" variant="outline" class="bg-white" :description="error" />
   </main>
 </template>

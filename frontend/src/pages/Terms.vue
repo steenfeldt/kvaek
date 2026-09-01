@@ -3,9 +3,9 @@
     <h1 class="text-2xl font-semibold">Vilkår og betingelser</h1>
     <UAlert
       color="warning"
-      variant="subtle"
+      variant="outline"
       description="UDKAST — de endelige vilkår udarbejdes i samarbejde med advokat og erstatter denne tekst inden offentlig lancering."
-      class="my-4"
+      class="my-4 bg-white"
     />
     <div class="flex flex-col gap-3 text-ink-600">
       <p>Platformen formidler kontakt mellem virksomheder og creators. Virksomheder betaler pr. kampagne for at kunne sende briefs; creators deltager gratis.</p>

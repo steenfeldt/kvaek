@@ -175,6 +175,6 @@ const briefMutation = useMutation({
       </RouterLink>
     </section>
 
-    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
+    <UAlert v-if="error" color="error" variant="outline" class="bg-white" :description="error" />
   </main>
 </template>

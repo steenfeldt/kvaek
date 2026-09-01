@@ -42,7 +42,7 @@ async function submit() {
   <main class="mx-auto flex max-w-sm flex-col gap-6 px-6 pt-16 pb-10 sm:pt-24">
     <img src="/logo.png" alt="" class="mx-auto h-20 w-20" />
     <h1 class="text-center text-2xl font-semibold">{{ $t("reset.title") }}</h1>
-    <form class="flex flex-col gap-4" @submit.prevent="submit">
+    <form class="surface flex flex-col gap-4" @submit.prevent="submit">
       <UFormField :label="$t('account.newPassword')">
         <UInput v-model="newPassword" type="password" required autofocus size="xl" class="w-full" />
       </UFormField>
@@ -51,6 +51,6 @@ async function submit() {
       </UFormField>
       <UButton type="submit" :loading="busy" size="xl" block>{{ $t("reset.submit") }}</UButton>
     </form>
-    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
+    <UAlert v-if="error" color="error" variant="outline" class="bg-white" :description="error" />
   </main>
 </template>

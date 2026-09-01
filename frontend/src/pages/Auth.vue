@@ -127,7 +127,7 @@ function toLogin() {
 
     <form
       v-if="stage === 'email'"
-      class="flex flex-col gap-4"
+      class="surface flex flex-col gap-4"
       @submit.prevent="usePassword ? loginWithPassword() : sendCode()"
     >
       <UFormField v-if="needsInvite" :label="$t('onboarding.inviteCode')">
@@ -160,7 +160,7 @@ function toLogin() {
       </p>
     </form>
 
-    <form v-else class="flex flex-col gap-4" @submit.prevent="confirmCode">
+    <form v-else class="surface flex flex-col gap-4" @submit.prevent="confirmCode">
       <p class="text-sm text-ink-600">{{ $t("auth.sentTo", { email }) }}</p>
       <UFormField :label="$t('auth.codeLabel')">
         <UInput
@@ -198,7 +198,7 @@ function toLogin() {
       </template>
     </p>
 
-    <UAlert v-if="info" color="info" variant="subtle" :description="info" />
-    <UAlert v-if="error" color="error" variant="subtle" :description="error" />
+    <UAlert v-if="info" color="info" variant="outline" class="bg-white" :description="info" />
+    <UAlert v-if="error" color="error" variant="outline" class="bg-white" :description="error" />
   </main>
 </template>
