@@ -268,6 +268,7 @@
     "title": "Get Kvæk as an app",
     "hint": "Install Kvæk on your home screen — it opens like an app.",
     "button": "Install the app",
-    "iosHelp": "In Safari: tap the Share button and choose “Add to Home Screen”."
+    "iosHelp": "In Safari: tap the Share button and choose “Add to Home Screen”.",
+    "macHelp": "In Safari: click the Share button in the toolbar and choose “Add to Dock”."
   }
 }
