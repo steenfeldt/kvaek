@@ -59,14 +59,14 @@ const gameOpen = ref(false);
         <p class="text-xs font-semibold uppercase tracking-widest text-ink-600">
           {{ $t("dashboard.activeCampaigns") }}
         </p>
-        <p class="mt-2 text-4xl font-semibold">{{ data.active_campaigns }}</p>
+        <p class="mt-2 text-4xl font-semibold text-fjord-600">{{ data.active_campaigns }}</p>
         <p class="mt-1 text-sm text-ink-600">{{ $t("dashboard.activeSub") }}</p>
       </RouterLink>
       <RouterLink to="/deals" class="px-5 py-6 transition-colors hover:bg-clay-50">
         <p class="text-xs font-semibold uppercase tracking-widest text-ink-600">
           {{ $t("dashboard.dealsInFlight") }}
         </p>
-        <p class="mt-2 text-4xl font-semibold">{{ data.deals_in_flight }}</p>
+        <p class="mt-2 text-4xl font-semibold text-sage-600">{{ data.deals_in_flight }}</p>
         <p class="mt-1 text-sm text-ink-600">{{ $t("dashboard.dealsSub") }}</p>
       </RouterLink>
     </section>
@@ -101,7 +101,7 @@ const gameOpen = ref(false);
       </div>
     </section>
 
-    <section class="rounded-2xl bg-gradient-to-br from-clay-100 to-clay-200 p-8">
+    <section class="rounded-2xl bg-sand p-8">
       <p class="text-xs font-semibold uppercase tracking-widest text-clay-700">
         {{ $t("dashboard.ctaEyebrow") }}
       </p>
