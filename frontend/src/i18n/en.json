@@ -263,5 +263,11 @@
     "title": "Choose a new password",
     "submit": "Save password",
     "done": "Password reset — log in."
+  },
+  "install": {
+    "title": "Get Kvæk as an app",
+    "hint": "Install Kvæk on your home screen — it opens like an app.",
+    "button": "Install the app",
+    "iosHelp": "In Safari: tap the Share button and choose “Add to Home Screen”."
   }
 }

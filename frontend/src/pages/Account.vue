@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import InstallApp from "../components/InstallApp.vue";
 import { allauth, api } from "../lib/api";
 import { useSession } from "../stores/session";
 
@@ -144,5 +145,7 @@ async function save() {
       </form>
       <UAlert v-if="error" color="error" variant="subtle" :description="error" class="mt-3" />
     </UCard>
+
+    <InstallApp />
   </main>
 </template>

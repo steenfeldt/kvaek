@@ -263,5 +263,11 @@
     "title": "Vælg ny adgangskode",
     "submit": "Gem adgangskode",
     "done": "Adgangskoden er nulstillet — log ind."
+  },
+  "install": {
+    "title": "Få Kvæk som app",
+    "hint": "Installér Kvæk på din hjemmeskærm — så åbner den som en app.",
+    "button": "Installér appen",
+    "iosHelp": "I Safari: tryk på Del-knappen og vælg “Føj til hjemmeskærm”."
   }
 }
