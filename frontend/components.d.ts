@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    InstallApp: typeof import('./src/components/InstallApp.vue')['default']
     KvaekkerGame: typeof import('./src/components/KvaekkerGame.vue')['default']
     NichePicker: typeof import('./src/components/NichePicker.vue')['default']
     ReportButton: typeof import('./src/components/ReportButton.vue')['default']
