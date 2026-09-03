@@ -26,7 +26,11 @@
     "useCodeInstead": "Use a one-time code instead",
     "forgotPassword": "Forgot password?",
     "forgotNeedsEmail": "Enter your email first.",
-    "forgotSent": "If the account exists, we've sent a password reset link."
+    "forgotSent": "If the account exists, we've sent a password reset link.",
+    "google": "Continue with Google",
+    "or": "or with email",
+    "finishing": "Signing you in …",
+    "socialError": "Google sign-in failed. Try again, or use your email."
   },
   "onboarding": {
     "choose": "Who are you?",

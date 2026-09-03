@@ -59,6 +59,14 @@ dcp exec backend python manage.py sync_cities   # Danish towns for the city pick
 17 4 * * * cd /opt/kvaek && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py sync_channels --jitter 600 >> /root/backups/sync_channels.log 2>&1
 ```
 
+**9. Google login** — in Google Cloud (same project as the YouTube key):
+OAuth consent screen (External, scopes `email` + `profile`, published), then an
+OAuth client of type *Web application* with authorised redirect URI
+`https://kvaek.com/accounts/google/login/callback/`. Put the client id and
+secret in `.env.prod` as `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and
+restart the backend. Locally the same works with
+`http://localhost:5173/accounts/google/login/callback/` and the values in `.env`.
+
 Channel-related env vars in `.env.prod`: `YOUTUBE_API_KEY` (Google Cloud API
 key with YouTube Data API v3 enabled), `META_IG_USER_ID` + `META_ACCESS_TOKEN`
 (our own Instagram Business account's long-lived token; expires after 60 days,

@@ -26,7 +26,11 @@
     "useCodeInstead": "Brug engangskode i stedet",
     "forgotPassword": "Glemt adgangskode?",
     "forgotNeedsEmail": "Skriv din e-mail først.",
-    "forgotSent": "Hvis kontoen findes, har vi sendt et link til at nulstille adgangskoden."
+    "forgotSent": "Hvis kontoen findes, har vi sendt et link til at nulstille adgangskoden.",
+    "google": "Fortsæt med Google",
+    "or": "eller med e-mail",
+    "finishing": "Logger dig ind …",
+    "socialError": "Login med Google mislykkedes. Prøv igen, eller brug din e-mail."
   },
   "onboarding": {
     "choose": "Hvem er du?",

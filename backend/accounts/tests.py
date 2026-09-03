@@ -479,3 +479,17 @@ def test_provider_registry_and_youtube_sync(db, monkeypatch, settings):
         sync_channel(link)
     link.refresh_from_db()
     assert link.sync_failures == 1 and link.snapshots.count() == 1
+
+
+def test_google_login_redirect(client, db, settings):
+    settings.SOCIALACCOUNT_PROVIDERS = {
+        "google": {"APPS": [{"client_id": "cid", "secret": "sec"}], "SCOPE": ["profile", "email"]}
+    }
+    res = client.post(
+        "/_allauth/browser/v1/auth/provider/redirect",
+        {"provider": "google", "callback_url": "http://testserver/auth/callback", "process": "login"},
+    )
+    assert res.status_code == 302
+    assert res["Location"].startswith("https://accounts.google.com/o/oauth2/v2/auth")
+    assert "redirect_uri=http%3A%2F%2Ftestserver%2Faccounts%2Fgoogle%2Flogin%2Fcallback%2F" in res["Location"]
+    assert "client_id=cid" in res["Location"]

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
-import { allauth } from "../lib/api";
+import { useRoute, useRouter } from "vue-router";
+import { allauth, ensureCsrf, getCookie } from "../lib/api";
 import { useSession } from "../stores/session";
 
 const router = useRouter();
+const route = useRoute();
 const session = useSession();
 
 const email = ref("");
@@ -24,6 +25,32 @@ const info = ref("");
 const error = ref("");
 const busy = ref(false);
 const { t } = useI18n();
+if (route.query.error === "social") error.value = t("auth.socialError");
+
+// Google: a real form POST so the browser follows allauth's redirect to
+// Google and back to /auth/callback. The signup intent survives in
+// sessionStorage across the round trip.
+async function continueWithGoogle() {
+  await ensureCsrf();
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "/_allauth/browser/v1/auth/provider/redirect";
+  const fields: Record<string, string> = {
+    provider: "google",
+    callback_url: `${window.location.origin}/auth/callback`,
+    process: "login",
+    csrfmiddlewaretoken: getCookie("csrftoken") ?? "",
+  };
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
 
 async function loginWithPassword() {
   error.value = "";
@@ -115,6 +142,15 @@ function toLogin() {
       class="surface flex flex-col gap-4"
       @submit.prevent="usePassword ? loginWithPassword() : sendCode()"
     >
+      <UButton type="button" variant="outline" color="neutral" size="xl" block class="bg-white" @click="continueWithGoogle">
+        <UIcon name="simple-icons:google" class="size-4" />
+        {{ $t("auth.google") }}
+      </UButton>
+      <div class="flex items-center gap-3 text-xs text-ink-500">
+        <span class="h-px flex-1 bg-clay-200" />
+        {{ $t("auth.or") }}
+        <span class="h-px flex-1 bg-clay-200" />
+      </div>
       <UFormField :label="$t('auth.emailLabel')">
         <UInput v-model="email" type="email" required autofocus size="xl" class="w-full" />
       </UFormField>

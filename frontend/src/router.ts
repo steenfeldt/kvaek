@@ -6,6 +6,7 @@ const routes = [
   { path: "/brands", component: () => import("./pages/BrandLanding.vue") },
   { path: "/creators", component: () => import("./pages/CreatorLanding.vue") },
   { path: "/auth", component: () => import("./pages/Auth.vue") },
+  { path: "/auth/callback", component: () => import("./pages/AuthCallback.vue") },
   { path: "/auth/password-reset/:key", component: () => import("./pages/PasswordReset.vue") },
   { path: "/account", component: () => import("./pages/Account.vue"), meta: { auth: true } },
   { path: "/terms", component: () => import("./pages/Terms.vue") },

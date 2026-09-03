@@ -19,6 +19,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("staff/verification-evidence/<int:pk>/", verification_evidence, name="verification-evidence"),
     path("_allauth/", include("allauth.headless.urls")),
+    # Only the social provider callback views are live here (HEADLESS_ONLY
+    # disables the HTML account views). Google redirects back to
+    # /accounts/google/login/callback/.
+    path("accounts/", include("allauth.urls")),
     path("api/csrf", csrf),
     path("api/", api.urls),
 ]

@@ -16,7 +16,7 @@ export default defineConfig({
       // Bundle icons from the installed @iconify-json collections (lucide +
       // simple-icons) instead of fetching them at runtime. The scan only picks
       // up `i-*` names in templates, so the platform icons are listed explicitly.
-      icon: { clientBundle: { scan: true, icons: PLATFORMS.map((p) => p.icon) } },
+      icon: { clientBundle: { scan: true, icons: [...PLATFORMS.map((p) => p.icon), "simple-icons:google"] } },
       ui: {
         // Palette roles per the brand sheet: sage = primary actions,
         // terracotta (clay) = secondary/badges, fjord = links/data/info.
@@ -57,7 +57,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": backend,
-      "/_allauth": backend,
+      // Host header preserved so allauth builds OAuth redirect URIs on localhost:5173.
+      "/_allauth": { target: backend, changeOrigin: false },
+      "/accounts": { target: backend, changeOrigin: false },
       "/media": backend,
     },
   },

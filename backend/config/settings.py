@@ -99,6 +99,10 @@ HEADLESS_FRONTEND_URLS = {
     "socialaccount_login_error": FRONTEND_URL + "/auth?error=social",
 }
 
+# A Google login whose (verified) email matches an existing email-code
+# account connects to it instead of failing — one person, one account.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_PROVIDERS = {}
 if os.environ.get("GOOGLE_CLIENT_ID"):
     SOCIALACCOUNT_PROVIDERS["google"] = {
