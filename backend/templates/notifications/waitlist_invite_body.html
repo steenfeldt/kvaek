@@ -1,7 +1,0 @@
-{% extends "email_base.html" %}
-{% block content %}
-<p style="margin:0 0 16px;">Hej{% if entry.name %} {{ entry.name }}{% endif %},</p>
-<p style="margin:0 0 20px;">Du står på ventelisten — nu er der plads til dig! Din invitationskode:</p>
-<div style="font-size:28px;letter-spacing:3px;font-weight:700;text-align:center;padding:18px;background:#faf5f0;border-radius:12px;margin:0 0 24px;">{{ code }}</div>
-<p style="margin:0;text-align:center;"><a href="{{ frontend_url }}/creators" style="display:inline-block;background:#b25532;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:10px;font-weight:600;">Opret din profil</a></p>
-{% endblock content %}

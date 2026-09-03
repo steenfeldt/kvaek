@@ -1,5 +1,3 @@
-import secrets
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.urls import reverse
@@ -8,14 +6,13 @@ from django.utils.html import format_html
 
 from .models import (
     BrandProfile,
+    City,
     CreatorProfile,
-    InviteCode,
     NicheTag,
     ProfilePhoto,
     SocialLink,
     User,
     VerificationRequest,
-    WaitlistEntry,
 )
 
 
@@ -101,28 +98,11 @@ class VerificationRequestAdmin(admin.ModelAdmin):
         )
 
 
-@admin.register(WaitlistEntry)
-class WaitlistEntryAdmin(admin.ModelAdmin):
-    list_display = ["email", "name", "handle", "created_at", "invited_at"]
-    list_filter = [("invited_at", admin.EmptyFieldListFilter)]
-    actions = ["send_invites"]
-
-    @admin.action(description="Create invite codes and email selected")
-    def send_invites(self, request, queryset):
-        from notifications.emails import waitlist_invite
-
-        for entry in queryset.filter(invited_at__isnull=True):
-            code = f"KVAEK-{secrets.token_hex(3).upper()}"
-            InviteCode.objects.create(code=code, note=f"waitlist: {entry.email}")
-            waitlist_invite(entry, code)
-            entry.invited_at = timezone.now()
-            entry.save(update_fields=["invited_at"])
-
-
-@admin.register(InviteCode)
-class InviteCodeAdmin(admin.ModelAdmin):
-    list_display = ["code", "is_active", "used_by", "used_at", "note"]
-    list_filter = ["is_active"]
-
-
 admin.site.register(NicheTag)
+
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ["name", "municipality"]
+    search_fields = ["name", "municipality"]
+

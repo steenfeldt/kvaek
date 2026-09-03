@@ -90,3 +90,68 @@ def test_password_prompt_dismiss_is_permanent(client, db):
     user.refresh_from_db()
     assert user.password_prompt_dismissed_at is not None
     assert client.get("/api/me").json()["prompt_password_setup"] is False
+
+
+def test_profile_patch_syncs_social_links(client, db):
+    from django.utils import timezone
+
+    from accounts.models import SocialLink
+
+    user = User.objects.create_user("channels@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="Kanal")
+    SocialLink.objects.create(
+        profile=profile, platform="instagram", handle="old", follower_count=100, verified_at=timezone.now()
+    )
+    client.force_login(user)
+
+    def patch(links):
+        return client.patch(
+            "/api/me/profile", {"social_links": links}, content_type="application/json"
+        )
+
+    # Add TikTok, bump Instagram followers without touching the handle.
+    res = patch(
+        [
+            {"platform": "instagram", "handle": "@old", "follower_count": 150},
+            {"platform": "tiktok", "handle": "@newtok", "follower_count": 20},
+        ]
+    )
+    assert res.status_code == 200
+    links = {s["platform"]: s for s in res.json()["social_links"]}
+    assert links["instagram"] == {"platform": "instagram", "handle": "old", "follower_count": 150, "verified": True}
+    assert links["tiktok"]["handle"] == "newtok"
+
+    # Changing the handle drops verification; an empty handle removes the channel.
+    res = patch([{"platform": "instagram", "handle": "fresh", "follower_count": 1}, {"platform": "tiktok", "handle": ""}])
+    links = {s["platform"]: s for s in res.json()["social_links"]}
+    assert list(links) == ["instagram"]
+    assert links["instagram"]["verified"] is False
+
+    # Omitting the field leaves channels alone.
+    res = client.patch("/api/me/profile", {"bio": "Hej"}, content_type="application/json")
+    assert len(res.json()["social_links"]) == 1
+
+
+def test_city_search_and_profile_city(client, db):
+    from accounts.models import City
+
+    aarhus = City.objects.create(dawa_id="a", name="Aarhus", municipality="Aarhus", municipality_code="0751")
+    City.objects.create(dawa_id="b", name="Aars", municipality="Vesthimmerland", municipality_code="0820")
+    City.objects.create(dawa_id="c", name="Sønderby", municipality="Assens", municipality_code="0420")
+    City.objects.create(dawa_id="d", name="Sønderby", municipality="Kalundborg", municipality_code="0326")
+
+    res = client.get("/api/cities", {"q": "aar"}).json()
+    assert [c["label"] for c in res] == ["Aars", "Aarhus"]
+    res = client.get("/api/cities", {"q": "Sønderby"}).json()
+    assert [c["label"] for c in res] == ["Sønderby (Assens)", "Sønderby (Kalundborg)"]
+    assert client.get("/api/cities").json() == []
+
+    user = User.objects.create_user("city@example.com")
+    CreatorProfile.objects.create(user=user, display_name="By")
+    client.force_login(user)
+    res = client.patch("/api/me/profile", {"city_id": aarhus.id}, content_type="application/json")
+    assert res.json()["city"] == "Aarhus" and res.json()["city_id"] == aarhus.id
+    # Absent key keeps the city, explicit null clears it.
+    assert client.patch("/api/me/profile", {"bio": "x"}, content_type="application/json").json()["city"] == "Aarhus"
+    assert client.patch("/api/me/profile", {"city_id": None}, content_type="application/json").json()["city"] == ""
+    assert client.patch("/api/me/profile", {"city_id": 9999}, content_type="application/json").status_code == 422

@@ -4,7 +4,7 @@
     "brandCta": "Find creators",
     "creatorCta": "Join as creator",
     "brandSub": "Swipe through Danish nano and micro creators. Pay per campaign only.",
-    "creatorSub": "Free for creators. Invite-only during beta.",
+    "creatorSub": "Free for creators. No commission.",
     "haveAccount": "Already have an account?"
   },
   "auth": {
@@ -21,7 +21,6 @@
     "asBrand": "as a business",
     "newHere": "New here?",
     "getStarted": "See how it works",
-    "invalidInvite": "Invalid or already used invite code.",
     "passwordLabel": "Password",
     "loginWithPassword": "Log in with password",
     "useCodeInstead": "Use a one-time code instead",
@@ -33,16 +32,18 @@
     "choose": "Who are you?",
     "creator": "I'm a creator",
     "brand": "I'm a business",
-    "inviteCode": "Invite code",
     "displayName": "Name",
     "city": "City",
+    "cityHint": "Many brands look for creators in a specific area — for events, store visits or local campaigns. Your city lets them find you.",
     "bio": "Short bio",
+    "bioHint": "The first thing brands read about you. Briefly say what you do and who follows you — it makes matching you with the right campaigns easier.",
     "companyName": "Company name",
     "cvr": "CVR number",
     "cvrLookup": "Look up",
     "website": "Website",
     "submit": "Get started",
     "niches": "Niches",
+    "nichesHint": "Brands filter by niche when they swipe. Pick the ones that fit your content so you show up for the right brands.",
     "acceptTerms": "I accept the",
     "termsLink": "terms",
     "and": "and the",
@@ -71,6 +72,8 @@
     "notListed": "Your profile isn't visible yet — complete it and await approval."
   },
   "status": {
+    "open": "Open",
+    "superseded": "Superseded",
     "draft": "Draft",
     "active": "Active",
     "completed": "Completed",
@@ -150,6 +153,9 @@
     "photos": "Photos",
     "addPhoto": "Add photo",
     "save": "Save changes",
+    "channels": "Your channels",
+    "channelsHint": "Enter your username and approximate follower count per channel. Clear the username to remove a channel. Changing a username means the follower count must be verified again.",
+    "followers": "Followers",
     "saved": "Saved",
     "listed": "Your profile is visible to brands",
     "notListed": "Your profile isn't visible yet — it's under review",
@@ -183,14 +189,14 @@
     "step2d": "Brands save you privately to their lists. You only see counts — no inbox spam.",
     "step3t": "Receive briefs and earn",
     "step3d": "You set your own price in the negotiation. No commission.",
-    "beta": "The beta is invite-only — if you have a code, you can create your profile now.",
     "cta": "Create creator profile",
-    "brandInstead": "Are you a business? See how it works for you",
-    "waitlistTitle": "No invite?",
-    "waitlistSub": "Join the waitlist and we'll send you a code when a spot opens.",
-    "waitlistCta": "Put me on the list",
-    "waitlistDone": "You're on the list! We'll get back to you.",
-    "waitlistConsent": "We only use your details to contact you about the product."
+    "brandInstead": "Are you a business? See how it works for you"
+  },
+  "city": {
+    "search": "Search for your city …",
+    "typeToSearch": "Type to search",
+    "none": "No matching cities",
+    "clear": "Clear city"
   },
   "report": {
     "button": "Report",

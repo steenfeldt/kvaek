@@ -2,8 +2,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import CityPicker from "../components/CityPicker.vue";
 import InstallApp from "../components/InstallApp.vue";
 import { allauth, api } from "../lib/api";
+import { cityFromProfile, findCityByName, type CityOption } from "../lib/cities";
 import { useSession } from "../stores/session";
 
 interface Brand {
@@ -11,6 +13,7 @@ interface Brand {
   cvr: string;
   website: string;
   city: string;
+  city_id: number | null;
 }
 
 const session = useSession();
@@ -24,17 +27,24 @@ const { data: brand } = useQuery({
   queryFn: () => api<Brand>("/me/brand"),
   enabled: isBrand,
 });
-const brandForm = ref<Brand>({ company_name: "", cvr: "", website: "", city: "" });
+const brandForm = ref({ company_name: "", cvr: "", website: "" });
+const brandCity = ref<CityOption | null>(null);
 watch(
   brand,
   (b) => {
-    if (b) brandForm.value = { ...b };
+    if (!b) return;
+    brandForm.value = { company_name: b.company_name, cvr: b.cvr, website: b.website };
+    brandCity.value = cityFromProfile(b);
   },
   { immediate: true },
 );
 
 const brandMutation = useMutation({
-  mutationFn: () => api<Brand>("/me/brand", { method: "PATCH", body: JSON.stringify(brandForm.value) }),
+  mutationFn: () =>
+    api<Brand>("/me/brand", {
+      method: "PATCH",
+      body: JSON.stringify({ ...brandForm.value, city_id: brandCity.value?.id ?? null }),
+    }),
   onSuccess: (data) => {
     queryClient.setQueryData(["my-brand"], data);
     session.refresh();
@@ -50,7 +60,7 @@ async function cvrLookup() {
     if (res.ok) {
       const data = await res.json();
       if (data.name) brandForm.value.company_name = data.name;
-      if (data.city) brandForm.value.city = data.city;
+      if (data.city) brandCity.value = await findCityByName(data.city);
     }
   } catch {}
 }
@@ -116,7 +126,7 @@ async function save() {
           <UInput v-model="brandForm.website" type="url" class="w-full" />
         </UFormField>
         <UFormField :label="$t('onboarding.city')">
-          <UInput v-model="brandForm.city" class="w-full" />
+          <CityPicker v-model="brandCity" />
         </UFormField>
         <UButton type="submit" :loading="brandMutation.isPending.value" block>
           {{ $t("profile.save") }}

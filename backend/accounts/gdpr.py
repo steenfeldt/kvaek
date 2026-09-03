@@ -11,7 +11,7 @@ identity behind them is anonymized.
 from django.contrib.sessions.models import Session
 from django.db import transaction
 
-from .models import User, WaitlistEntry
+from .models import User
 
 
 @transaction.atomic
@@ -38,14 +38,13 @@ def erase_user(user: User) -> str:
             brand.company_name = "Anonymiseret virksomhed"
             brand.cvr = ""
             brand.website = ""
-            brand.city = ""
+            brand.city = None
             brand.save()
             summary.append("brand profile anonymized (payment records kept)")
         else:
             brand.delete()
             summary.append("brand profile deleted")
 
-    WaitlistEntry.objects.filter(email__iexact=user.email).delete()
     EmailAddress.objects.filter(user=user).delete()
     SocialAccount.objects.filter(user=user).delete()
 
@@ -79,7 +78,7 @@ def export_user_data(user: User) -> dict:
     if creator is not None:
         data["creator_profile"] = {
             "display_name": creator.display_name,
-            "city": creator.city,
+            "city": creator.city_name,
             "bio": creator.bio,
             "listed": creator.listed,
             "verified": creator.verified,
@@ -111,7 +110,7 @@ def export_user_data(user: User) -> dict:
             "company_name": brand.company_name,
             "cvr": brand.cvr,
             "website": brand.website,
-            "city": brand.city,
+            "city": brand.city_name,
             "campaigns": [
                 {
                     "name": c.name,

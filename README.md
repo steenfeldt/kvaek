@@ -24,9 +24,12 @@ docker compose exec backend python manage.py createsuperuser
 - Django admin: http://localhost:8000/admin
 - Mailpit (login codes, all outgoing email): http://localhost:8025
 
-Creator signup requires an invite code — create one in admin under
-*Accounts → Invite codes*. Creators appear in the brand deck only once `listed`
-is ticked on their profile (admin, after moderation).
+Creators appear in the brand deck only once `listed` is ticked on their
+profile (admin, after moderation).
+
+The city picker reads from a `City` table synced from DAWA (Dataforsyningen,
+open data, no key). Run `docker compose exec backend python manage.py
+sync_cities` once after migrating (and before `seed_creators`).
 
 With `MOLLIE_API_KEY` empty (dev), campaign checkout simulates an instant paid
 payment and activates the campaign, so the full flow is testable offline.
@@ -63,9 +66,6 @@ docker compose exec backend pytest
   URL) and the payment-return page's reconcile-on-poll confirms payments
   instead; deployed environments get the webhook automatically via
   `BACKEND_URL`.
-- **Waitlist → invites**: admin *Waitlist entries* → select → "Create invite
-  codes and email selected" generates a `KVAEK-XXXXXX` code per entry and
-  emails it.
 - **Verification**: creators upload evidence from their profile; admin
   *Verification requests* → approve/reject actions (approve flips the
   creator's verified badge).

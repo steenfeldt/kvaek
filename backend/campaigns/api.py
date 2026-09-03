@@ -373,7 +373,7 @@ def brand_dashboard(request):
     newest = pool.prefetch_related("photos").order_by("-created_at")[:4]
     return BrandDashboardOut(
         company_name=brand.company_name,
-        city=brand.city,
+        city=brand.city_name,
         # Open creator proposals await the brand's answer.
         waiting_proposals=Proposal.objects.filter(
             brief__campaign__brand=brand,
@@ -385,13 +385,13 @@ def brand_dashboard(request):
         .exclude(brand_completed_at__isnull=False, creator_completed_at__isnull=False)
         .count(),
         pool_total=pool.count(),
-        pool_in_city=pool.filter(city__iexact=brand.city).count() if brand.city else 0,
+        pool_in_city=pool.filter(city=brand.city).count() if brand.city_id else 0,
         # Photo + name/city only — no handles or links pre-deal (anti-circumvention).
         new_in_pool=[
             PoolCreatorOut(
                 id=p.id,
                 display_name=p.display_name,
-                city=p.city,
+                city=p.city_name,
                 photo=photos[0].image.url if (photos := list(p.photos.all())) else None,
             )
             for p in newest
@@ -428,7 +428,7 @@ def creator_dashboard(request):
     )
     return CreatorDashboardOut(
         display_name=creator.display_name,
-        city=creator.city,
+        city=creator.city_name,
         waiting_briefs=waiting,
         deals_in_flight=Deal.objects.filter(brief__creator=creator)
         .exclude(brand_completed_at__isnull=False, creator_completed_at__isnull=False)

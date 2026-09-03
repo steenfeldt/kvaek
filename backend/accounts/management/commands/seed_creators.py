@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from PIL import Image
 
-from accounts.models import CreatorProfile, NicheTag, SocialLink, User
+from accounts.models import City, CreatorProfile, NicheTag, SocialLink, User
 from accounts.services import process_profile_image
 
 SEED_DOMAIN = "seed.invalid"
@@ -129,12 +129,14 @@ class Command(BaseCommand):
             city = random.choice(CITIES)
             main_niche = random.choice(NICHES)
             bio = random.choice(BIO_TEMPLATES[main_niche]).format(city=city)
+            # Needs `sync_cities` to have run; otherwise the profile has no city.
+            city_obj = City.objects.filter(name=city).order_by("id").first()
 
             user = User.objects.create_user(email)
             profile = CreatorProfile.objects.create(
                 user=user,
                 display_name=name,
-                city=city,
+                city=city_obj,
                 bio=bio,
                 listed=True,
                 verified=random.random() < 0.25,

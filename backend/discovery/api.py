@@ -44,7 +44,7 @@ def _card(profile: CreatorProfile) -> DeckCardOut:
     return DeckCardOut(
         id=profile.id,
         display_name=profile.display_name,
-        city=profile.city,
+        city=profile.city_name,
         bio=profile.bio,
         niches=[t.name for t in profile.niches.all()],
         verified=profile.verified,

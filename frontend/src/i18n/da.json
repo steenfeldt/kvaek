@@ -4,7 +4,7 @@
     "brandCta": "Find creators",
     "creatorCta": "Bliv creator",
     "brandSub": "Swipe gennem danske nano- og mikro-creators. Betal kun pr. kampagne.",
-    "creatorSub": "Gratis for creators. Kun invitation i beta.",
+    "creatorSub": "Gratis for creators. Ingen kommission.",
     "haveAccount": "Har du allerede en konto?"
   },
   "auth": {
@@ -21,7 +21,6 @@
     "asBrand": "som virksomhed",
     "newHere": "Ny her?",
     "getStarted": "Se hvordan det virker",
-    "invalidInvite": "Ugyldig eller brugt invitationskode.",
     "passwordLabel": "Adgangskode",
     "loginWithPassword": "Log ind med adgangskode",
     "useCodeInstead": "Brug engangskode i stedet",
@@ -33,16 +32,18 @@
     "choose": "Hvem er du?",
     "creator": "Jeg er creator",
     "brand": "Jeg er en virksomhed",
-    "inviteCode": "Invitationskode",
     "displayName": "Navn",
     "city": "By",
+    "cityHint": "Mange brands leder efter creators i et bestemt område — til events, butiksbesøg eller lokale kampagner. Din by gør, at de kan finde dig.",
     "bio": "Kort om dig",
+    "bioHint": "Det første, brands læser om dig. Fortæl kort, hvad du laver, og hvem der følger dig — så er det lettere at matche dig med de rigtige kampagner.",
     "companyName": "Virksomhedsnavn",
     "cvr": "CVR-nummer",
     "cvrLookup": "Slå op",
     "website": "Hjemmeside",
     "submit": "Kom i gang",
     "niches": "Nicher",
+    "nichesHint": "Brands filtrerer efter niche, når de swiper. Vælg dem, der passer til dit indhold, så du dukker op for de rigtige brands.",
     "acceptTerms": "Jeg accepterer",
     "termsLink": "vilkårene",
     "and": "og",
@@ -71,6 +72,8 @@
     "notListed": "Din profil er ikke synlig endnu — udfyld profil og afvent godkendelse."
   },
   "status": {
+    "open": "Åben",
+    "superseded": "Erstattet",
     "draft": "Kladde",
     "active": "Aktiv",
     "completed": "Afsluttet",
@@ -151,6 +154,9 @@
     "addPhoto": "Tilføj billede",
     "save": "Gem ændringer",
     "saved": "Gemt",
+    "channels": "Dine kanaler",
+    "channelsHint": "Skriv dit brugernavn og cirka antal følgere pr. kanal. Slet brugernavnet for at fjerne en kanal. Ændrer du brugernavn, skal følgertallet verificeres igen.",
+    "followers": "Følgere",
     "listed": "Din profil er synlig for brands",
     "notListed": "Din profil er endnu ikke synlig — den gennemgås af os",
     "verified": "Verificeret",
@@ -183,14 +189,14 @@
     "step2d": "Brands gemmer dig privat på deres lister. Du ser kun tal — ingen spam i indbakken.",
     "step3t": "Modtag briefs og tjen penge",
     "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
-    "beta": "Betaen er kun med invitation — har du fået en kode, kan du oprette din profil nu.",
     "cta": "Opret creator-profil",
-    "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer",
-    "waitlistTitle": "Ingen invitation?",
-    "waitlistSub": "Skriv dig på ventelisten, så sender vi dig en kode, når der er plads.",
-    "waitlistCta": "Skriv mig op",
-    "waitlistDone": "Du er på listen! Vi vender tilbage, når der er plads.",
-    "waitlistConsent": "Vi bruger kun dine oplysninger til at kontakte dig om produktet."
+    "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer"
+  },
+  "city": {
+    "search": "Søg efter din by …",
+    "typeToSearch": "Skriv for at søge",
+    "none": "Ingen byer matcher",
+    "clear": "Fjern by"
   },
   "report": {
     "button": "Anmeld",

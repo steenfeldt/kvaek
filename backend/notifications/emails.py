@@ -38,10 +38,6 @@ def proposal_received(proposal) -> None:
     )
 
 
-def waitlist_invite(entry, code: str) -> None:
-    _send("waitlist_invite", entry.email, {"entry": entry, "code": code})
-
-
 def invoice_created(invoice, pdf_bytes: bytes) -> None:
     context = {
         "invoice": invoice,

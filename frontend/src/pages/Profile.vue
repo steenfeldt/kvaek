@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { ref, watch } from "vue";
+import CityPicker from "../components/CityPicker.vue";
+import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
 import { api, apiUpload } from "../lib/api";
+import { cityFromProfile, type CityOption } from "../lib/cities";
 
 interface Photo {
   id: number;
@@ -11,6 +14,7 @@ interface Photo {
 interface Profile {
   display_name: string;
   city: string;
+  city_id: number | null;
   bio: string;
   listed: boolean;
   verified: boolean;
@@ -24,23 +28,49 @@ const queryClient = useQueryClient();
 const toast = useToast();
 const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => api<Profile>("/me/profile") });
 
-const form = ref({ display_name: "", city: "", bio: "", niches: [] as string[] });
+const PLATFORMS = ["instagram", "tiktok"] as const;
+const PLATFORM_LABEL: Record<(typeof PLATFORMS)[number], string> = { instagram: "Instagram", tiktok: "TikTok" };
+
+function emptyChannels() {
+  return Object.fromEntries(PLATFORMS.map((p) => [p, { handle: "", follower_count: 0 }])) as Record<
+    (typeof PLATFORMS)[number],
+    { handle: string; follower_count: number }
+  >;
+}
+
+const form = ref({ display_name: "", city: null as CityOption | null, bio: "", niches: [] as string[] });
+// One row per platform; clearing the handle removes the channel on save.
+const channels = ref(emptyChannels());
 watch(
   profile,
   (p) => {
-    if (p)
-      form.value = {
-        display_name: p.display_name,
-        city: p.city,
-        bio: p.bio,
-        niches: p.niches.map((n) => n.slug),
-      };
+    if (!p) return;
+    form.value = {
+      display_name: p.display_name,
+      city: cityFromProfile(p),
+      bio: p.bio,
+      niches: p.niches.map((n) => n.slug),
+    };
+    channels.value = emptyChannels();
+    for (const s of p.social_links) {
+      if (s.platform in channels.value)
+        channels.value[s.platform as (typeof PLATFORMS)[number]] = { handle: s.handle, follower_count: s.follower_count };
+    }
   },
   { immediate: true },
 );
 
 const saveMutation = useMutation({
-  mutationFn: () => api<Profile>("/me/profile", { method: "PATCH", body: JSON.stringify(form.value) }),
+  mutationFn: () =>
+    api<Profile>("/me/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        ...form.value,
+        city: undefined,
+        city_id: form.value.city?.id ?? null,
+        social_links: PLATFORMS.map((platform) => ({ platform, ...channels.value[platform] })),
+      }),
+    }),
   onSuccess: (data) => {
     queryClient.setQueryData(["my-profile"], data);
     toast.add({ title: "✓", color: "success" });
@@ -124,19 +154,39 @@ function onEvidence(event: Event) {
           <UInput v-model="form.display_name" required class="w-full" />
         </UFormField>
         <UFormField :label="$t('onboarding.city')">
-          <UInput v-model="form.city" class="w-full" />
+          <template #hint><FieldHint :text="$t('onboarding.cityHint')" /></template>
+          <CityPicker v-model="form.city" />
         </UFormField>
         <UFormField :label="$t('onboarding.bio')">
+          <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
           <UTextarea v-model="form.bio" :rows="3" class="w-full" />
         </UFormField>
         <UFormField :label="$t('onboarding.niches')">
+          <template #hint><FieldHint :text="$t('onboarding.nichesHint')" /></template>
           <NichePicker v-model="form.niches" />
         </UFormField>
-        <div class="flex flex-wrap gap-2">
-          <UBadge v-for="s in profile.social_links" :key="s.platform" color="primary" variant="subtle">
-            {{ s.platform }} @{{ s.handle }} · {{ s.follower_count.toLocaleString("da-DK") }}
-          </UBadge>
-        </div>
+        <UFormField :label="$t('profile.channels')">
+          <template #hint><FieldHint :text="$t('profile.channelsHint')" /></template>
+          <div class="flex flex-col gap-2">
+            <div v-for="platform in PLATFORMS" :key="platform" class="flex items-center gap-2">
+              <UInput v-model="channels[platform].handle" :placeholder="`${PLATFORM_LABEL[platform]} @`" class="flex-1" />
+              <UInput
+                v-model.number="channels[platform].follower_count"
+                type="number"
+                min="0"
+                :placeholder="$t('profile.followers')"
+                class="w-32"
+              />
+              <UBadge
+                v-if="profile.social_links.find((s) => s.platform === platform)?.verified"
+                color="success"
+                variant="subtle"
+              >
+                ✔
+              </UBadge>
+            </div>
+          </div>
+        </UFormField>
         <UButton type="submit" :loading="saveMutation.isPending.value" block>
           {{ $t("profile.save") }}
         </UButton>

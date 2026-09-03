@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { useMutation } from "@tanstack/vue-query";
-import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { api } from "../lib/api";
 
 const router = useRouter();
 
@@ -10,14 +7,6 @@ function signup() {
   sessionStorage.setItem("signup-intent", "creator");
   router.push("/auth");
 }
-
-const waitlist = ref({ email: "", name: "", handle: "" });
-const joined = ref(false);
-
-const waitlistMutation = useMutation({
-  mutationFn: () => api("/waitlist", { method: "POST", body: JSON.stringify(waitlist.value) }),
-  onSuccess: () => (joined.value = true),
-});
 </script>
 
 <template>
@@ -38,28 +27,9 @@ const waitlistMutation = useMutation({
       </li>
     </ol>
 
-    <UAlert color="primary" variant="subtle" :description="$t('forCreators.beta')" class="text-left" />
-
     <div class="flex flex-col items-center gap-3">
       <UButton size="xl" class="px-10" @click="signup">{{ $t("forCreators.cta") }}</UButton>
       <RouterLink to="/brands" class="text-sm text-ink-600 underline">{{ $t("forCreators.brandInstead") }}</RouterLink>
     </div>
-
-    <UCard>
-      <h2 class="font-semibold">{{ $t("forCreators.waitlistTitle") }}</h2>
-      <p class="mt-1 mb-4 text-sm text-ink-600">{{ $t("forCreators.waitlistSub") }}</p>
-      <p v-if="joined" class="text-green-700">{{ $t("forCreators.waitlistDone") }}</p>
-      <form v-else class="flex flex-col gap-3" @submit.prevent="waitlistMutation.mutate()">
-        <div class="grid gap-3 sm:grid-cols-2">
-          <UInput v-model="waitlist.name" :placeholder="$t('onboarding.displayName')" />
-          <UInput v-model="waitlist.handle" placeholder="Instagram/TikTok @" />
-        </div>
-        <UInput v-model="waitlist.email" type="email" required :placeholder="$t('auth.emailLabel')" />
-        <UButton type="submit" variant="outline" :loading="waitlistMutation.isPending.value" block>
-          {{ $t("forCreators.waitlistCta") }}
-        </UButton>
-        <p class="text-xs text-ink-600">{{ $t("forCreators.waitlistConsent") }}</p>
-      </form>
-    </UCard>
   </main>
 </template>

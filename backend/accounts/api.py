@@ -1,4 +1,6 @@
 from django.db import transaction
+from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models.functions import Length
 from django.utils import timezone
 from ninja import File, Router, Schema, UploadedFile
 from ninja.errors import HttpError
@@ -7,13 +9,12 @@ from ninja.security import django_auth
 from .models import (
     TERMS_VERSION,
     BrandProfile,
+    City,
     CreatorProfile,
-    InviteCode,
     NicheTag,
     ProfilePhoto,
     SocialLink,
     VerificationRequest,
-    WaitlistEntry,
 )
 from .services import process_profile_image
 
@@ -73,9 +74,8 @@ class SocialLinkIn(Schema):
 
 
 class CreatorOnboardingIn(Schema):
-    invite_code: str
     display_name: str
-    city: str = ""
+    city_id: int | None = None
     bio: str = ""
     niches: list[str] = []
     social_links: list[SocialLinkIn] = []
@@ -86,7 +86,7 @@ class BrandOnboardingIn(Schema):
     company_name: str
     cvr: str
     website: str = ""
-    city: str = ""
+    city_id: int | None = None
     accept_terms: bool = False
 
 
@@ -106,9 +106,39 @@ class OnboardingOut(Schema):
     role: str
 
 
+def _city_or_422(city_id: int | None) -> City | None:
+    if city_id is None:
+        return None
+    city = City.objects.filter(id=city_id).first()
+    if city is None:
+        raise HttpError(422, "Unknown city")
+    return city
+
+
 def _require_no_profile(user):
     if user.role is not None:
         raise HttpError(409, "Account already has a profile")
+
+
+def _sync_social_links(profile: CreatorProfile, links: list[SocialLinkIn]) -> None:
+    """Make the profile's channels match `links`: one per platform, an empty
+    handle removes the channel. A changed handle drops any API-confirmed stats,
+    since they belonged to the old account."""
+    keep = []
+    for link in links:
+        handle = link.handle.strip().lstrip("@")
+        if link.platform not in SocialLink.Platform.values or not handle:
+            continue
+        existing = profile.social_links.filter(platform=link.platform).first()
+        if existing is None:
+            existing = SocialLink(profile=profile, platform=link.platform)
+        elif existing.handle != handle:
+            existing.verified_at = None
+        existing.handle = handle
+        existing.follower_count = max(0, link.follower_count)
+        existing.save()
+        keep.append(link.platform)
+    profile.social_links.exclude(platform__in=keep).delete()
 
 
 def _record_terms(user, accepted: bool):
@@ -124,34 +154,17 @@ def _record_terms(user, accepted: bool):
 def onboard_creator(request, payload: CreatorOnboardingIn):
     _require_no_profile(request.user)
     _record_terms(request.user, payload.accept_terms)
-    invite = (
-        InviteCode.objects.select_for_update()
-        .filter(code=payload.invite_code.strip(), is_active=True, used_by__isnull=True)
-        .first()
-    )
-    if invite is None:
-        raise HttpError(403, "Invalid or used invite code")
     profile = CreatorProfile.objects.create(
         user=request.user,
         display_name=payload.display_name.strip(),
-        city=payload.city.strip(),
+        city=_city_or_422(payload.city_id),
         bio=payload.bio.strip(),
     )
     for slug in payload.niches:
         tag = NicheTag.objects.filter(slug=slug).first()
         if tag:
             profile.niches.add(tag)
-    for link in payload.social_links:
-        if link.platform in SocialLink.Platform.values and link.handle.strip():
-            SocialLink.objects.create(
-                profile=profile,
-                platform=link.platform,
-                handle=link.handle.strip().lstrip("@"),
-                follower_count=max(0, link.follower_count),
-            )
-    invite.used_by = request.user
-    invite.used_at = timezone.now()
-    invite.save(update_fields=["used_by", "used_at"])
+    _sync_social_links(profile, payload.social_links)
     return OnboardingOut(role="creator")
 
 
@@ -166,7 +179,7 @@ def onboard_brand(request, payload: BrandOnboardingIn):
         company_name=payload.company_name.strip(),
         cvr=cvr,
         website=payload.website.strip(),
-        city=payload.city.strip(),
+        city=_city_or_422(payload.city_id),
     )
     return OnboardingOut(role="brand")
 
@@ -176,6 +189,11 @@ class MyBrandOut(Schema):
     cvr: str
     website: str
     city: str
+    city_id: int | None = None
+
+    @staticmethod
+    def resolve_city(obj) -> str:
+        return obj.city_name
 
 
 def _brand_or_403(request) -> BrandProfile:
@@ -194,7 +212,7 @@ class BrandUpdateIn(Schema):
     company_name: str | None = None
     cvr: str | None = None
     website: str | None = None
-    city: str | None = None
+    city_id: int | None = None
 
 
 @router.patch("/me/brand", response=MyBrandOut, auth=django_auth)
@@ -202,10 +220,13 @@ def update_brand(request, payload: BrandUpdateIn):
     brand = _brand_or_403(request)
     if payload.cvr is not None:
         brand.cvr = _clean_cvr(payload.cvr, exclude_profile_id=brand.id)
-    for field in ("company_name", "website", "city"):
+    for field in ("company_name", "website"):
         value = getattr(payload, field)
         if value is not None:
             setattr(brand, field, value.strip())
+    # null clears the city; an absent key leaves it alone.
+    if "city_id" in payload.dict(exclude_unset=True):
+        brand.city = _city_or_422(payload.city_id)
     if not brand.company_name:
         raise HttpError(422, "Company name is required")
     brand.save()
@@ -222,17 +243,42 @@ def niches(request):
     return NicheTag.objects.all().order_by("name")
 
 
-class InviteCheckIn(Schema):
-    code: str
+class CityOut(Schema):
+    id: int
+    name: str
+    municipality: str
+    # Display text: the name, plus the municipality when the name is ambiguous.
+    label: str
 
 
-@router.post("/invites/validate", auth=None)
-def validate_invite(request, payload: InviteCheckIn):
-    """Pre-check for the signup form; the code is only consumed at onboarding."""
-    valid = InviteCode.objects.filter(
-        code=payload.code.strip(), is_active=True, used_by__isnull=True
-    ).exists()
-    return {"valid": valid}
+@router.get("/cities", response=list[CityOut], auth=None)
+def cities(request, q: str = "", limit: int = 20):
+    q = q.strip()
+    if not q:
+        return []
+    limit = max(1, min(limit, 50))
+    matches = list(
+        City.objects.filter(name__istartswith=q)
+        .annotate(
+            exact=Case(When(name__iexact=q, then=Value(0)), default=Value(1), output_field=IntegerField()),
+            name_len=Length("name"),
+        )
+        .order_by("exact", "name_len", "name", "municipality")[:limit]
+    )
+    counts = dict(
+        City.objects.filter(name__in={c.name for c in matches})
+        .values_list("name")
+        .annotate(n=Count("id"))
+    )
+    return [
+        CityOut(
+            id=c.id,
+            name=c.name,
+            municipality=c.municipality,
+            label=c.name if counts.get(c.name, 1) == 1 else f"{c.name} ({c.municipality})",
+        )
+        for c in matches
+    ]
 
 
 def _creator_or_403(request) -> CreatorProfile:
@@ -257,6 +303,7 @@ class SocialLinkOut(Schema):
 class MyProfileOut(Schema):
     display_name: str
     city: str
+    city_id: int | None = None
     bio: str
     listed: bool
     verified: bool
@@ -270,7 +317,8 @@ def _my_profile(profile: CreatorProfile) -> MyProfileOut:
     latest_verification = profile.verification_requests.order_by("-created_at").first()
     return MyProfileOut(
         display_name=profile.display_name,
-        city=profile.city,
+        city=profile.city_name,
+        city_id=profile.city_id,
         bio=profile.bio,
         listed=profile.listed,
         verified=profile.verified,
@@ -296,21 +344,29 @@ def my_profile(request):
 
 class ProfileUpdateIn(Schema):
     display_name: str | None = None
-    city: str | None = None
+    city_id: int | None = None
     bio: str | None = None
     niches: list[str] | None = None
+    social_links: list[SocialLinkIn] | None = None
 
 
 @router.patch("/me/profile", response=MyProfileOut, auth=django_auth)
+@transaction.atomic
 def update_profile(request, payload: ProfileUpdateIn):
     profile = _creator_or_403(request)
-    for field in ("display_name", "city", "bio"):
+    for field in ("display_name", "bio"):
         value = getattr(payload, field)
         if value is not None:
             setattr(profile, field, value.strip())
+    if "city_id" in payload.dict(exclude_unset=True):
+        profile.city = _city_or_422(payload.city_id)
+    if not profile.display_name:
+        raise HttpError(422, "Name is required")
     profile.save()
     if payload.niches is not None:
         profile.niches.set(NicheTag.objects.filter(slug__in=payload.niches))
+    if payload.social_links is not None:
+        _sync_social_links(profile, payload.social_links)
     return _my_profile(profile)
 
 
@@ -363,21 +419,3 @@ def request_verification(request, file: File[UploadedFile]):
     VerificationRequest.objects.create(creator=profile, evidence=evidence)
     return {"status": "pending"}
 
-
-class WaitlistIn(Schema):
-    email: str
-    name: str = ""
-    handle: str = ""
-
-
-@router.post("/waitlist", auth=None)
-def join_waitlist(request, payload: WaitlistIn):
-    email = payload.email.strip().lower()
-    if "@" not in email:
-        raise HttpError(422, "Invalid email")
-    WaitlistEntry.objects.get_or_create(
-        email=email,
-        defaults={"name": payload.name.strip(), "handle": payload.handle.strip().lstrip("@")},
-    )
-    # Idempotent and non-revealing: joining twice looks identical.
-    return {"ok": True}

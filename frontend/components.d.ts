@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CityPicker: typeof import('./src/components/CityPicker.vue')['default']
+    FieldHint: typeof import('./src/components/FieldHint.vue')['default']
     InstallApp: typeof import('./src/components/InstallApp.vue')['default']
     KvaekkerGame: typeof import('./src/components/KvaekkerGame.vue')['default']
     NichePicker: typeof import('./src/components/NichePicker.vue')['default']
@@ -24,8 +26,10 @@ declare module 'vue' {
     UCard: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Card.vue')['default']
     UFormField: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/FormField.vue')['default']
     UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
+    UInputMenu: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/InputMenu.vue')['default']
     UModal: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Modal.vue')['default']
     UTextarea: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
+    UTooltip: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Tooltip.vue')['default']
     WelcomePasswordPrompt: typeof import('./src/components/WelcomePasswordPrompt.vue')['default']
   }
 }

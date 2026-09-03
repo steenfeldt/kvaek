@@ -64,35 +64,27 @@ class NicheTag(models.Model):
         return self.name
 
 
-class InviteCode(models.Model):
-    code = models.CharField(max_length=32, unique=True)
-    is_active = models.BooleanField(default=True)
-    note = models.CharField(max_length=200, blank=True)
-    used_by = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="invite_codes_used"
-    )
-    used_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+class City(models.Model):
+    """Danish towns from DAWA (Dataforsyningen stednavne, type "by"), kept in
+    sync by `manage.py sync_cities`. Names repeat across municipalities."""
+
+    dawa_id = models.CharField(max_length=40, unique=True)
+    name = models.CharField(max_length=100, db_index=True)
+    municipality = models.CharField(max_length=100)
+    municipality_code = models.CharField(max_length=4)
+
+    class Meta:
+        ordering = ["name", "municipality"]
+        verbose_name_plural = "cities"
 
     def __str__(self):
-        return self.code
-
-
-class WaitlistEntry(models.Model):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=100, blank=True)
-    handle = models.CharField(max_length=120, blank=True, help_text="Instagram/TikTok handle")
-    created_at = models.DateTimeField(auto_now_add=True)
-    invited_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return self.email
+        return self.name
 
 
 class CreatorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="creator_profile")
     display_name = models.CharField(max_length=100)
-    city = models.CharField(max_length=100, blank=True)
+    city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     bio = models.TextField(blank=True)
     niches = models.ManyToManyField(NicheTag, blank=True, related_name="creators")
     # A creator appears in the swipe pool only when listed (completeness bar + moderation).
@@ -100,6 +92,10 @@ class CreatorProfile(models.Model):
     verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def city_name(self) -> str:
+        return self.city.name if self.city else ""
 
     def __str__(self):
         return self.display_name
@@ -151,9 +147,13 @@ class BrandProfile(models.Model):
     # grandfathered/anonymized rows.
     cvr = models.CharField("CVR", max_length=8, blank=True)
     website = models.URLField(blank=True)
-    city = models.CharField(max_length=100, blank=True)
+    city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def city_name(self) -> str:
+        return self.city.name if self.city else ""
 
     class Meta:
         constraints = [

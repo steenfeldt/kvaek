@@ -49,9 +49,7 @@ dcp exec backend python manage.py createsuperuser
 dcp exec backend python manage.py shell -c "
 from django.contrib.sites.models import Site
 Site.objects.filter(id=1).update(domain='kvaek.com', name='Kvæk')"
-dcp exec backend python manage.py shell -c "
-from accounts.models import InviteCode
-[InviteCode.objects.get_or_create(code=f'BETA-{i:03d}') for i in range(1, 21)]"
+dcp exec backend python manage.py sync_cities   # Danish towns for the city picker (rerun now and then)
 ```
 
 Optionally seed demo creators: `dcp exec backend python manage.py seed_creators --count 25`

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import CityPicker from "../components/CityPicker.vue";
+import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
 import { api } from "../lib/api";
+import { findCityByName, type CityOption } from "../lib/cities";
 import { useSession } from "../stores/session";
 
 const route = useRoute();
@@ -14,15 +17,15 @@ const role = ref<"creator" | "brand" | "">(intent === "creator" || intent === "b
 const error = ref("");
 const busy = ref(false);
 
-// Invite code carried over from the signup form, when it was entered there.
-const storedInvite = sessionStorage.getItem("invite-code") ?? "";
-const creator = ref({ invite_code: storedInvite, display_name: "", city: "", bio: "" });
+const creator = ref({ display_name: "", bio: "" });
+const creatorCity = ref<CityOption | null>(null);
 const selectedNiches = ref<string[]>([]);
 const instagram = ref({ handle: "", follower_count: 0 });
 const tiktok = ref({ handle: "", follower_count: 0 });
 const acceptTerms = ref(false);
 
-const brand = ref({ company_name: "", cvr: "", website: "", city: "" });
+const brand = ref({ company_name: "", cvr: "", website: "" });
+const brandCity = ref<CityOption | null>(null);
 
 async function cvrLookup() {
   if (!/^\d{8}$/.test(brand.value.cvr)) return;
@@ -31,7 +34,7 @@ async function cvrLookup() {
     if (res.ok) {
       const data = await res.json();
       if (data.name) brand.value.company_name = data.name;
-      if (data.city) brand.value.city = data.city;
+      if (data.city) brandCity.value = await findCityByName(data.city);
     }
   } catch {}
 }
@@ -49,6 +52,7 @@ async function submit() {
         method: "POST",
         body: JSON.stringify({
           ...creator.value,
+          city_id: creatorCity.value?.id ?? null,
           social_links,
           niches: selectedNiches.value,
           accept_terms: acceptTerms.value,
@@ -57,11 +61,10 @@ async function submit() {
     } else {
       await api("/onboarding/brand", {
         method: "POST",
-        body: JSON.stringify({ ...brand.value, accept_terms: acceptTerms.value }),
+        body: JSON.stringify({ ...brand.value, city_id: brandCity.value?.id ?? null, accept_terms: acceptTerms.value }),
       });
     }
     sessionStorage.removeItem("signup-intent");
-    sessionStorage.removeItem("invite-code");
     await session.refresh();
     router.push(session.postLoginRoute());
   } catch (e) {
@@ -94,27 +97,27 @@ async function submit() {
 
     <form v-else-if="role === 'creator'" class="surface flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.creator") }}</h1>
-      <UFormField v-if="!storedInvite" :label="$t('onboarding.inviteCode')" required>
-        <UInput v-model="creator.invite_code" required class="w-full" />
-      </UFormField>
       <UFormField :label="$t('onboarding.displayName')" required>
         <UInput v-model="creator.display_name" required class="w-full" />
       </UFormField>
       <UFormField :label="$t('onboarding.city')">
-        <UInput v-model="creator.city" class="w-full" />
+        <template #hint><FieldHint :text="$t('onboarding.cityHint')" /></template>
+        <CityPicker v-model="creatorCity" />
       </UFormField>
       <UFormField :label="$t('onboarding.bio')">
+        <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
         <UTextarea v-model="creator.bio" :rows="3" class="w-full" />
       </UFormField>
       <div class="flex gap-2">
         <UInput v-model="instagram.handle" placeholder="Instagram @" class="flex-1" />
-        <UInput v-model.number="instagram.follower_count" type="number" min="0" placeholder="Følgere" class="w-32" />
+        <UInput v-model.number="instagram.follower_count" type="number" min="0" :placeholder="$t('profile.followers')" class="w-32" />
       </div>
       <div class="flex gap-2">
         <UInput v-model="tiktok.handle" placeholder="TikTok @" class="flex-1" />
-        <UInput v-model.number="tiktok.follower_count" type="number" min="0" placeholder="Følgere" class="w-32" />
+        <UInput v-model.number="tiktok.follower_count" type="number" min="0" :placeholder="$t('profile.followers')" class="w-32" />
       </div>
       <UFormField :label="$t('onboarding.niches')">
+        <template #hint><FieldHint :text="$t('onboarding.nichesHint')" /></template>
         <NichePicker v-model="selectedNiches" />
       </UFormField>
       <label class="flex items-start gap-2 text-sm text-ink-600">
@@ -146,7 +149,7 @@ async function submit() {
         <UInput v-model="brand.website" type="url" class="w-full" />
       </UFormField>
       <UFormField :label="$t('onboarding.city')">
-        <UInput v-model="brand.city" class="w-full" />
+        <CityPicker v-model="brandCity" />
       </UFormField>
       <label class="flex items-start gap-2 text-sm text-ink-600">
         <input v-model="acceptTerms" type="checkbox" required class="mt-1" />
