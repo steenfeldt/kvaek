@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
 import FieldHint from "../components/FieldHint.vue";
@@ -104,7 +105,7 @@ async function submit() {
       </UFormField>
       <UFormField :label="$t('onboarding.bio')">
         <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
-        <UTextarea v-model="creator.bio" :rows="3" class="w-full" />
+        <BioEditor v-model="creator.bio" />
       </UFormField>
       <UFormField :label="$t('profile.channels')">
         <template #hint><FieldHint :text="$t('channels.hint')" /></template>

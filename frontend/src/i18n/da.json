@@ -36,7 +36,7 @@
     "city": "By",
     "cityHint": "Mange brands leder efter creators i et bestemt område — til events, butiksbesøg eller lokale kampagner. Din by gør, at de kan finde dig.",
     "bio": "Kort om dig",
-    "bioHint": "Det første, brands læser om dig. Fortæl kort, hvad du laver, og hvem der følger dig — så er det lettere at matche dig med de rigtige kampagner.",
+    "bioHint": "Det første, brands læser om dig. Fortæl kort, hvad du laver, og hvem der følger dig. Skriv # for at tilføje hashtags (op til 10), fx #vegansk eller #aarhus — de gør dig lettere at finde.",
     "companyName": "Virksomhedsnavn",
     "cvr": "CVR-nummer",
     "cvrLookup": "Slå op",
@@ -196,6 +196,11 @@
     "remove": "Fjern kanal",
     "empty": "Ingen kanaler endnu. Tilføj mindst én, så brands kan se din rækkevidde.",
     "hint": "Tilføj de kanaler, du skaber indhold på, med brugernavn og cirka antal følgere. Brands ser kun platform og følgertal, ikke dit brugernavn, før I har en aftale. Ændrer du brugernavn, skal følgertallet verificeres igen."
+  },
+  "hashtags": {
+    "placeholder": "Kort om dig – skriv # for at tilføje hashtags",
+    "new": "Nyt hashtag",
+    "creators": "{count} creator bruger det | {count} creators bruger det"
   },
   "city": {
     "search": "Søg efter din by …",

@@ -36,7 +36,7 @@
     "city": "City",
     "cityHint": "Many brands look for creators in a specific area — for events, store visits or local campaigns. Your city lets them find you.",
     "bio": "Short bio",
-    "bioHint": "The first thing brands read about you. Briefly say what you do and who follows you — it makes matching you with the right campaigns easier.",
+    "bioHint": "The first thing brands read about you. Briefly say what you do and who follows you. Type # to add hashtags (up to 10), e.g. #vegan or #aarhus — they make you easier to find.",
     "companyName": "Company name",
     "cvr": "CVR number",
     "cvrLookup": "Look up",
@@ -196,6 +196,11 @@
     "remove": "Remove channel",
     "empty": "No channels yet. Add at least one so brands can see your reach.",
     "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the follower count must be verified again."
+  },
+  "hashtags": {
+    "placeholder": "Short bio – type # to add hashtags",
+    "new": "New hashtag",
+    "creators": "used by {count} creator | used by {count} creators"
   },
   "city": {
     "search": "Search for your city …",

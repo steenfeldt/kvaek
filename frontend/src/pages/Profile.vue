@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { ref, watch } from "vue";
+import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
 import FieldHint from "../components/FieldHint.vue";
@@ -147,7 +148,7 @@ function onEvidence(event: Event) {
         </UFormField>
         <UFormField :label="$t('onboarding.bio')">
           <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
-          <UTextarea v-model="form.bio" :rows="3" class="w-full" />
+          <BioEditor v-model="form.bio" />
         </UFormField>
         <UFormField :label="$t('onboarding.niches')">
           <template #hint><FieldHint :text="$t('onboarding.nichesHint')" /></template>

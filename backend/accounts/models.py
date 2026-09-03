@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from .storage import private_storage
@@ -86,6 +87,8 @@ class CreatorProfile(models.Model):
     display_name = models.CharField(max_length=100)
     city = models.ForeignKey(City, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     bio = models.TextField(blank=True)
+    # Hashtags written in the bio (lowercased, without '#'), kept for search.
+    bio_tags = ArrayField(models.CharField(max_length=30), default=list, blank=True)
     niches = models.ManyToManyField(NicheTag, blank=True, related_name="creators")
     # A creator appears in the swipe pool only when listed (completeness bar + moderation).
     listed = models.BooleanField(default=False)

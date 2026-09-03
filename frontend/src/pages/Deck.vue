@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, ref } from "vue";
 import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
+import HashtagText from "../components/HashtagText.vue";
 import { platformInfo } from "../lib/platforms";
 
 interface Social {
@@ -132,7 +133,7 @@ function swipe(direction: "like" | "pass") {
             <span class="flex-1" />
             <ReportButton :creator-id="top.id" />
           </h2>
-          <p class="text-sm text-ink-600">{{ top.bio }}</p>
+          <p class="text-sm text-ink-600"><HashtagText :text="top.bio" /></p>
           <div class="flex flex-wrap gap-2">
             <UBadge v-for="n in top.niches" :key="n" color="primary" variant="subtle" size="sm">{{ n }}</UBadge>
           </div>

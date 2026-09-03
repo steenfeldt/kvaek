@@ -11,9 +11,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BioEditor: typeof import('./src/components/BioEditor.vue')['default']
     ChannelEditor: typeof import('./src/components/ChannelEditor.vue')['default']
     CityPicker: typeof import('./src/components/CityPicker.vue')['default']
     FieldHint: typeof import('./src/components/FieldHint.vue')['default']
+    HashtagText: typeof import('./src/components/HashtagText.vue')['default']
     InstallApp: typeof import('./src/components/InstallApp.vue')['default']
     KvaekkerGame: typeof import('./src/components/KvaekkerGame.vue')['default']
     NichePicker: typeof import('./src/components/NichePicker.vue')['default']
@@ -26,6 +28,8 @@ declare module 'vue' {
     UButton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Button.vue')['default']
     UCard: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Card.vue')['default']
     UDropdownMenu: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/DropdownMenu.vue')['default']
+    UEditor: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Editor.vue')['default']
+    UEditorMentionMenu: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/EditorMentionMenu.vue')['default']
     UFormField: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/FormField.vue')['default']
     UIcon: typeof import('./node_modules/@nuxt/ui/dist/runtime/vue/components/Icon.vue')['default']
     UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']

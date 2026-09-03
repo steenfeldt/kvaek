@@ -1,3 +1,5 @@
+from collections import Counter
+
 from django.db import transaction
 from django.db.models import Case, Count, IntegerField, Value, When
 from django.db.models.functions import Length
@@ -16,7 +18,7 @@ from .models import (
     SocialLink,
     VerificationRequest,
 )
-from .services import process_profile_image
+from .services import extract_hashtags, process_profile_image
 
 router = Router(tags=["accounts"])
 
@@ -141,6 +143,13 @@ def _sync_social_links(profile: CreatorProfile, links: list[SocialLinkIn]) -> No
     profile.social_links.exclude(platform__in=keep).delete()
 
 
+def _hashtags_or_422(bio: str) -> list[str]:
+    try:
+        return extract_hashtags(bio)
+    except ValueError as e:
+        raise HttpError(422, str(e))
+
+
 def _record_terms(user, accepted: bool):
     if not accepted:
         raise HttpError(422, "Terms must be accepted")
@@ -159,6 +168,7 @@ def onboard_creator(request, payload: CreatorOnboardingIn):
         display_name=payload.display_name.strip(),
         city=_city_or_422(payload.city_id),
         bio=payload.bio.strip(),
+        bio_tags=_hashtags_or_422(payload.bio),
     )
     for slug in payload.niches:
         tag = NicheTag.objects.filter(slug=slug).first()
@@ -243,6 +253,24 @@ def niches(request):
     return NicheTag.objects.all().order_by("name")
 
 
+class HashtagOut(Schema):
+    tag: str
+    count: int
+
+
+@router.get("/hashtags", response=list[HashtagOut], auth=None)
+def hashtags(request, q: str = "", limit: int = 8):
+    """Hashtags in use across listed creators, most common first — feeds the
+    `#` suggestion menu so spelling converges."""
+    q = q.strip().lstrip("#").lower()
+    limit = max(1, min(limit, 20))
+    counts: Counter[str] = Counter()
+    for tags in CreatorProfile.objects.filter(listed=True).values_list("bio_tags", flat=True):
+        counts.update(t for t in tags if t.startswith(q))
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+    return [HashtagOut(tag=t, count=n) for t, n in ranked]
+
+
 class CityOut(Schema):
     id: int
     name: str
@@ -305,6 +333,7 @@ class MyProfileOut(Schema):
     city: str
     city_id: int | None = None
     bio: str
+    bio_tags: list[str] = []
     listed: bool
     verified: bool
     verification_status: str | None = None
@@ -320,6 +349,7 @@ def _my_profile(profile: CreatorProfile) -> MyProfileOut:
         city=profile.city_name,
         city_id=profile.city_id,
         bio=profile.bio,
+        bio_tags=profile.bio_tags,
         listed=profile.listed,
         verified=profile.verified,
         verification_status=latest_verification.status if latest_verification else None,
@@ -360,6 +390,8 @@ def update_profile(request, payload: ProfileUpdateIn):
             setattr(profile, field, value.strip())
     if "city_id" in payload.dict(exclude_unset=True):
         profile.city = _city_or_422(payload.city_id)
+    if payload.bio is not None:
+        profile.bio_tags = _hashtags_or_422(profile.bio)
     if not profile.display_name:
         raise HttpError(422, "Name is required")
     profile.save()

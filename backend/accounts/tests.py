@@ -165,3 +165,27 @@ def test_city_search_and_profile_city(client, db):
     assert client.patch("/api/me/profile", {"bio": "x"}, content_type="application/json").json()["city"] == "Aarhus"
     assert client.patch("/api/me/profile", {"city_id": None}, content_type="application/json").json()["city"] == ""
     assert client.patch("/api/me/profile", {"city_id": 9999}, content_type="application/json").status_code == 422
+
+
+def test_bio_hashtags_extracted_and_suggested(client, db):
+    from accounts.services import extract_hashtags
+
+    assert extract_hashtags("Mad fra #Aarhus og #vegansk. #aarhus igen, #zero-waste #x_1") == [
+        "aarhus", "vegansk", "zero-waste", "x_1"
+    ]
+    assert extract_hashtags("ingen tags, email@example.com, #") == []
+    with pytest.raises(ValueError):
+        extract_hashtags(" ".join(f"#t{i}" for i in range(11)))
+
+    user = User.objects.create_user("tags@example.com")
+    CreatorProfile.objects.create(user=user, display_name="Tag", listed=True)
+    client.force_login(user)
+    res = client.patch("/api/me/profile", {"bio": "Hej #Aarhus #vegansk"}, content_type="application/json")
+    assert res.status_code == 200 and res.json()["bio_tags"] == ["aarhus", "vegansk"]
+    too_many = " ".join(f"#t{i}" for i in range(11))
+    assert client.patch("/api/me/profile", {"bio": too_many}, content_type="application/json").status_code == 422
+
+    other = User.objects.create_user("tags2@example.com")
+    CreatorProfile.objects.create(user=other, display_name="Tag2", listed=True, bio_tags=["aarhus", "løb"])
+    assert client.get("/api/hashtags", {"q": "a"}).json() == [{"tag": "aarhus", "count": 2}]
+    assert [h["tag"] for h in client.get("/api/hashtags").json()] == ["aarhus", "løb", "vegansk"]
