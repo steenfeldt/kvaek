@@ -491,7 +491,7 @@ class PortfolioUpdateIn(Schema):
     description: str | None = None
 
 
-@router.patch("/me/portfolio/{item_id}", response=PortfolioOut, auth=django_auth)
+@router.patch("/me/portfolio/{int:item_id}", response=PortfolioOut, auth=django_auth)
 def update_portfolio_item(request, item_id: int, payload: PortfolioUpdateIn):
     profile = _creator_or_403(request)
     item = profile.portfolio.filter(id=item_id).first()
@@ -507,7 +507,25 @@ def update_portfolio_item(request, item_id: int, payload: PortfolioUpdateIn):
     return _portfolio_out(item)
 
 
-@router.delete("/me/portfolio/{item_id}", auth=django_auth)
+class PortfolioOrderIn(Schema):
+    ids: list[int]
+
+
+@router.put("/me/portfolio/order", response=list[PortfolioOut], auth=django_auth)
+@transaction.atomic
+def reorder_portfolio(request, payload: PortfolioOrderIn):
+    """Set the display order; `ids` must be exactly the creator's items."""
+    profile = _creator_or_403(request)
+    items = {i.id: i for i in profile.portfolio.all()}
+    if sorted(payload.ids) != sorted(items):
+        raise HttpError(422, "ids must list every portfolio item exactly once")
+    for position, item_id in enumerate(payload.ids):
+        items[item_id].sort_order = position
+        items[item_id].save(update_fields=["sort_order"])
+    return [_portfolio_out(i) for i in profile.portfolio.all()]
+
+
+@router.delete("/me/portfolio/{int:item_id}", auth=django_auth)
 def delete_portfolio_item(request, item_id: int):
     profile = _creator_or_403(request)
     item = profile.portfolio.filter(id=item_id).first()

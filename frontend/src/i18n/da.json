@@ -200,7 +200,8 @@
   },
   "portfolio": {
     "title": "Portfolio",
-    "hint": "Vis brands, hvad du har lavet før: ét billede eller én video pr. opgave plus en kort tekst om opgaven og resultatet. Op til 12 opgaver.",
+    "hint": "Vis brands, hvad du har lavet før: ét billede eller én video pr. opgave plus en kort tekst om opgaven og resultatet. Op til 12 opgaver. Træk i håndtaget for at ændre rækkefølgen.",
+    "drag": "Træk for at flytte",
     "addJob": "Tilføj opgave",
     "media": "Billede eller video (MP4/WebM, maks 50 MB)",
     "itemTitle": "Titel",

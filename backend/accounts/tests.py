@@ -242,3 +242,26 @@ def test_single_profile_photo_and_portfolio(client, db):
     assert res.json()["description"] == "5 reels"
     assert client.delete(f"/api/me/portfolio/{item_id}").status_code == 200
     assert PortfolioItem.objects.filter(profile=profile).count() == 1
+
+
+def test_portfolio_reorder(client, db):
+    from django.core.files.base import ContentFile
+
+    from accounts.models import PortfolioItem
+
+    user = User.objects.create_user("order@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="Order")
+    a, b, c = [
+        PortfolioItem.objects.create(
+            profile=profile, media=ContentFile(b"x", name=f"{n}.webp"), media_type="image", title=n, sort_order=i
+        )
+        for i, n in enumerate("abc")
+    ]
+    client.force_login(user)
+    res = client.put("/api/me/portfolio/order", {"ids": [c.id, a.id, b.id]}, content_type="application/json")
+    assert res.status_code == 200
+    assert [i["title"] for i in res.json()] == ["c", "a", "b"]
+    assert [i["title"] for i in client.get("/api/me/profile").json()["portfolio"]] == ["c", "a", "b"]
+    # Must name every item exactly once.
+    assert client.put("/api/me/portfolio/order", {"ids": [a.id, b.id]}, content_type="application/json").status_code == 422
+    assert client.put("/api/me/portfolio/order", {"ids": [a.id, b.id, c.id, 999]}, content_type="application/json").status_code == 422

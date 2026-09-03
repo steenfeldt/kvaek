@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { ref, watch } from "vue";
+import Sortable from "sortablejs";
+import { onBeforeUnmount, ref, watch } from "vue";
 import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
@@ -123,6 +124,47 @@ const deleteItemMutation = useMutation({
   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
 });
 
+// Drag-and-drop ordering. Sortable moves the DOM node; we move it back and
+// let Vue re-render from the new order so the two never disagree.
+const reorderMutation = useMutation({
+  mutationFn: (ids: number[]) => api<PortfolioItem[]>("/me/portfolio/order", { method: "PUT", body: JSON.stringify({ ids }) }),
+  onSuccess: (portfolio) => {
+    const current = queryClient.getQueryData<Profile>(["my-profile"]);
+    if (current) queryClient.setQueryData(["my-profile"], { ...current, portfolio });
+  },
+  onError: (e) => {
+    toast.add({ title: (e as Error).message, color: "error" });
+    queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+  },
+});
+
+const portfolioList = ref<HTMLElement | null>(null);
+let sortable: Sortable | null = null;
+watch(portfolioList, (el) => {
+  sortable?.destroy();
+  sortable = null;
+  if (!el) return;
+  sortable = Sortable.create(el, {
+    animation: 150,
+    handle: "[data-drag-handle]",
+    onEnd(evt) {
+      const { item, from, oldIndex, newIndex } = evt;
+      if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return;
+      from.removeChild(item);
+      from.insertBefore(item, from.children[oldIndex] ?? null);
+      const ids = (profile.value?.portfolio ?? []).map((p) => p.id);
+      ids.splice(newIndex, 0, ids.splice(oldIndex, 1)[0]);
+      const current = queryClient.getQueryData<Profile>(["my-profile"]);
+      if (current) {
+        const byId = new Map(current.portfolio.map((p) => [p.id, p]));
+        queryClient.setQueryData(["my-profile"], { ...current, portfolio: ids.map((id) => byId.get(id)!) });
+      }
+      reorderMutation.mutate(ids);
+    },
+  });
+});
+onBeforeUnmount(() => sortable?.destroy());
+
 const evidenceInput = ref<HTMLInputElement | null>(null);
 
 const verifyMutation = useMutation({
@@ -180,8 +222,16 @@ function onEvidence(event: Event) {
     <UCard>
       <h2 class="mb-1 font-semibold">{{ $t("portfolio.title") }}</h2>
       <p class="mb-4 text-sm text-ink-600">{{ $t("portfolio.hint") }}</p>
-      <ul v-if="profile.portfolio.length" class="mb-4 grid gap-3 sm:grid-cols-2">
-        <li v-for="item in profile.portfolio" :key="item.id" class="group relative overflow-hidden rounded-xl border border-clay-200">
+      <ul v-if="profile.portfolio.length" ref="portfolioList" class="mb-4 grid gap-3 sm:grid-cols-2">
+        <li v-for="item in profile.portfolio" :key="item.id" class="group relative overflow-hidden rounded-xl border border-clay-200 bg-white">
+          <button
+            type="button"
+            data-drag-handle
+            class="absolute top-2 left-2 flex h-7 w-7 cursor-grab touch-none items-center justify-center rounded-md bg-white/90 text-ink-600 active:cursor-grabbing"
+            :aria-label="$t('portfolio.drag')"
+          >
+            <UIcon name="i-lucide-grip-vertical" class="size-4" />
+          </button>
           <video v-if="item.media_type === 'video'" :src="item.url" class="aspect-video w-full bg-black object-cover" controls preload="metadata" />
           <img v-else :src="item.url" class="aspect-video w-full object-cover" alt="" />
           <div class="p-3">

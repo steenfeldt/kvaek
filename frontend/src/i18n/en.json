@@ -200,7 +200,8 @@
   },
   "portfolio": {
     "title": "Portfolio",
-    "hint": "Show brands what you've done before: one image or video per job plus a short note on the brief and the result. Up to 12 jobs.",
+    "hint": "Show brands what you've done before: one image or video per job plus a short note on the brief and the result. Up to 12 jobs. Drag the handle to reorder.",
+    "drag": "Drag to reorder",
     "addJob": "Add job",
     "media": "Image or video (MP4/WebM, max 50 MB)",
     "itemTitle": "Title",
