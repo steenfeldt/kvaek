@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQuery } from "@tanstack/vue-query";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -26,6 +27,16 @@ const error = ref("");
 const busy = ref(false);
 const { t } = useI18n();
 if (route.query.error === "social") error.value = t("auth.socialError");
+
+// Only offer Google when the backend has a client configured.
+const { data: authConfig } = useQuery({
+  queryKey: ["allauth-config"],
+  queryFn: async () => (await allauth("GET", "/config")).data,
+  staleTime: Infinity,
+});
+const googleEnabled = computed(() =>
+  (authConfig.value?.data?.socialaccount?.providers ?? []).some((p: { id: string }) => p.id === "google"),
+);
 
 // Google: a real form POST so the browser follows allauth's redirect to
 // Google and back to /auth/callback. The signup intent survives in
@@ -142,15 +153,17 @@ function toLogin() {
       class="surface flex flex-col gap-4"
       @submit.prevent="usePassword ? loginWithPassword() : sendCode()"
     >
-      <UButton type="button" variant="outline" color="neutral" size="xl" block class="bg-white" @click="continueWithGoogle">
-        <UIcon name="simple-icons:google" class="size-4" />
-        {{ $t("auth.google") }}
-      </UButton>
-      <div class="flex items-center gap-3 text-xs text-ink-500">
-        <span class="h-px flex-1 bg-clay-200" />
-        {{ $t("auth.or") }}
-        <span class="h-px flex-1 bg-clay-200" />
-      </div>
+      <template v-if="googleEnabled">
+        <UButton type="button" variant="outline" color="neutral" size="xl" block class="bg-white" @click="continueWithGoogle">
+          <UIcon name="simple-icons:google" class="size-4" />
+          {{ $t("auth.google") }}
+        </UButton>
+        <div class="flex items-center gap-3 text-xs text-ink-500">
+          <span class="h-px flex-1 bg-clay-200" />
+          {{ $t("auth.or") }}
+          <span class="h-px flex-1 bg-clay-200" />
+        </div>
+      </template>
       <UFormField :label="$t('auth.emailLabel')">
         <UInput v-model="email" type="email" required autofocus size="xl" class="w-full" />
       </UFormField>
