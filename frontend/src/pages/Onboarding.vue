@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
 import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
-import { api } from "../lib/api";
+import { api, apiUpload } from "../lib/api";
 import { findCityByName, type CityOption } from "../lib/cities";
 import type { Channel } from "../lib/platforms";
 import { useSession } from "../stores/session";
@@ -14,6 +15,7 @@ import { useSession } from "../stores/session";
 const route = useRoute();
 const router = useRouter();
 const session = useSession();
+const { t } = useI18n();
 
 const intent = (route.query.role as string) || sessionStorage.getItem("signup-intent") || "";
 const role = ref<"creator" | "brand" | "">(intent === "creator" || intent === "brand" ? intent : "");
@@ -24,6 +26,16 @@ const creator = ref({ display_name: "", bio: "" });
 const creatorCity = ref<CityOption | null>(null);
 const selectedNiches = ref<string[]>([]);
 const channels = ref<Channel[]>([]);
+// Required profile photo; uploaded right after the profile exists.
+const photoFile = ref<File | null>(null);
+const photoPreview = ref("");
+function onPhoto(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+  if (photoPreview.value) URL.revokeObjectURL(photoPreview.value);
+  photoFile.value = file;
+  photoPreview.value = file ? URL.createObjectURL(file) : "";
+}
+onBeforeUnmount(() => photoPreview.value && URL.revokeObjectURL(photoPreview.value));
 const acceptTerms = ref(false);
 
 const brand = ref({ company_name: "", cvr: "", website: "" });
@@ -46,6 +58,10 @@ async function submit() {
   busy.value = true;
   try {
     if (role.value === "creator") {
+      if (!photoFile.value) {
+        error.value = t("onboarding.photoRequired");
+        return;
+      }
       const social_links = channels.value.filter((c) => c.handle.trim());
       await api("/onboarding/creator", {
         method: "POST",
@@ -57,6 +73,9 @@ async function submit() {
           accept_terms: acceptTerms.value,
         }),
       });
+      // The profile exists now; a failed upload still lands the user on the
+      // dashboard, where the "not visible yet" alert points back to the photo.
+      await apiUpload("/me/photos", photoFile.value);
     } else {
       await api("/onboarding/brand", {
         method: "POST",
@@ -96,6 +115,19 @@ async function submit() {
 
     <form v-else-if="role === 'creator'" class="surface flex flex-col gap-4" @submit.prevent="submit">
       <h1 class="text-2xl font-semibold">{{ $t("onboarding.creator") }}</h1>
+      <UFormField :label="$t('profile.photo')" required>
+        <template #hint><FieldHint :text="$t('profile.photoHint')" /></template>
+        <div class="flex items-center gap-4">
+          <img v-if="photoPreview" :src="photoPreview" class="h-24 w-24 rounded-xl object-cover" alt="" />
+          <div v-else class="flex h-24 w-24 items-center justify-center rounded-xl bg-clay-100 text-3xl">📷</div>
+          <label>
+            <input type="file" accept="image/*" class="hidden" @change="onPhoto" />
+            <UButton as="span" variant="outline" color="neutral" class="cursor-pointer bg-white">
+              {{ photoFile ? $t("profile.replacePhoto") : $t("profile.addPhoto") }}
+            </UButton>
+          </label>
+        </div>
+      </UFormField>
       <UFormField :label="$t('onboarding.displayName')" required>
         <UInput v-model="creator.display_name" required class="w-full" />
       </UFormField>
@@ -124,7 +156,7 @@ async function submit() {
           <RouterLink to="/privacy" target="_blank" class="underline">{{ $t("onboarding.privacyLink") }}</RouterLink>
         </span>
       </label>
-      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms">
+      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms || !photoFile">
         {{ $t("onboarding.submit") }}
       </UButton>
     </form>

@@ -33,6 +33,7 @@
     "creator": "I'm a creator",
     "brand": "I'm a business",
     "displayName": "Name",
+    "photoRequired": "Choose a profile photo to continue.",
     "city": "City",
     "cityHint": "Many brands look for creators in a specific area — for events, store visits or local campaigns. Your city lets them find you.",
     "bio": "Short bio",

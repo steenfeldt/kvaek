@@ -33,6 +33,7 @@
     "creator": "Jeg er creator",
     "brand": "Jeg er en virksomhed",
     "displayName": "Navn",
+    "photoRequired": "Vælg et profilbillede for at fortsætte.",
     "city": "By",
     "cityHint": "Mange brands leder efter creators i et bestemt område — til events, butiksbesøg eller lokale kampagner. Din by gør, at de kan finde dig.",
     "bio": "Kort om dig",
