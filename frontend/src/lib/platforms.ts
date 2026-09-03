@@ -12,10 +12,6 @@ export const PLATFORMS: PlatformInfo[] = [
   { value: "facebook", label: "Facebook", icon: "simple-icons:facebook" },
   { value: "snapchat", label: "Snapchat", icon: "simple-icons:snapchat" },
   { value: "linkedin", label: "LinkedIn", icon: "simple-icons:linkedin" },
-  { value: "x", label: "X", icon: "simple-icons:x" },
-  { value: "threads", label: "Threads", icon: "simple-icons:threads" },
-  { value: "twitch", label: "Twitch", icon: "simple-icons:twitch" },
-  { value: "pinterest", label: "Pinterest", icon: "simple-icons:pinterest" },
 ];
 
 export function platformInfo(value: string): PlatformInfo {

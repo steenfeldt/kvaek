@@ -121,10 +121,6 @@ class SocialLink(models.Model):
         FACEBOOK = "facebook", "Facebook"
         SNAPCHAT = "snapchat", "Snapchat"
         LINKEDIN = "linkedin", "LinkedIn"
-        X = "x", "X"
-        THREADS = "threads", "Threads"
-        TWITCH = "twitch", "Twitch"
-        PINTEREST = "pinterest", "Pinterest"
 
     profile = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_links")
     platform = models.CharField(max_length=20, choices=Platform.choices)
