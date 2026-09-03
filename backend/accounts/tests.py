@@ -127,9 +127,19 @@ def test_profile_patch_syncs_social_links(client, db):
     assert list(links) == ["instagram"]
     assert links["instagram"]["verified"] is False
 
+    # Any platform from the model's choices is accepted; unknown ones are ignored.
+    res = patch(
+        [
+            {"platform": "instagram", "handle": "fresh", "follower_count": 1},
+            {"platform": "youtube", "handle": "@tube", "follower_count": 5},
+            {"platform": "myspace", "handle": "tom", "follower_count": 1},
+        ]
+    )
+    assert sorted(s["platform"] for s in res.json()["social_links"]) == ["instagram", "youtube"]
+
     # Omitting the field leaves channels alone.
     res = client.patch("/api/me/profile", {"bio": "Hej"}, content_type="application/json")
-    assert len(res.json()["social_links"]) == 1
+    assert len(res.json()["social_links"]) == 2
 
 
 def test_city_search_and_profile_city(client, db):

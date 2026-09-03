@@ -155,7 +155,6 @@
     "save": "Gem ændringer",
     "saved": "Gemt",
     "channels": "Dine kanaler",
-    "channelsHint": "Skriv dit brugernavn og cirka antal følgere pr. kanal. Slet brugernavnet for at fjerne en kanal. Ændrer du brugernavn, skal følgertallet verificeres igen.",
     "followers": "Følgere",
     "listed": "Din profil er synlig for brands",
     "notListed": "Din profil er endnu ikke synlig — den gennemgås af os",
@@ -191,6 +190,12 @@
     "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
     "cta": "Opret creator-profil",
     "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer"
+  },
+  "channels": {
+    "add": "Tilføj kanal",
+    "remove": "Fjern kanal",
+    "empty": "Ingen kanaler endnu. Tilføj mindst én, så brands kan se din rækkevidde.",
+    "hint": "Tilføj de kanaler, du skaber indhold på, med brugernavn og cirka antal følgere. Brands ser kun platform og følgertal, ikke dit brugernavn, før I har en aftale. Ændrer du brugernavn, skal følgertallet verificeres igen."
   },
   "city": {
     "search": "Søg efter din by …",

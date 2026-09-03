@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
 import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
 import { api } from "../lib/api";
 import { findCityByName, type CityOption } from "../lib/cities";
+import type { Channel } from "../lib/platforms";
 import { useSession } from "../stores/session";
 
 const route = useRoute();
@@ -20,8 +22,7 @@ const busy = ref(false);
 const creator = ref({ display_name: "", bio: "" });
 const creatorCity = ref<CityOption | null>(null);
 const selectedNiches = ref<string[]>([]);
-const instagram = ref({ handle: "", follower_count: 0 });
-const tiktok = ref({ handle: "", follower_count: 0 });
+const channels = ref<Channel[]>([]);
 const acceptTerms = ref(false);
 
 const brand = ref({ company_name: "", cvr: "", website: "" });
@@ -44,10 +45,7 @@ async function submit() {
   busy.value = true;
   try {
     if (role.value === "creator") {
-      const social_links = [
-        { platform: "instagram", ...instagram.value },
-        { platform: "tiktok", ...tiktok.value },
-      ].filter((s) => s.handle.trim());
+      const social_links = channels.value.filter((c) => c.handle.trim());
       await api("/onboarding/creator", {
         method: "POST",
         body: JSON.stringify({
@@ -108,14 +106,10 @@ async function submit() {
         <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
         <UTextarea v-model="creator.bio" :rows="3" class="w-full" />
       </UFormField>
-      <div class="flex gap-2">
-        <UInput v-model="instagram.handle" placeholder="Instagram @" class="flex-1" />
-        <UInput v-model.number="instagram.follower_count" type="number" min="0" :placeholder="$t('profile.followers')" class="w-32" />
-      </div>
-      <div class="flex gap-2">
-        <UInput v-model="tiktok.handle" placeholder="TikTok @" class="flex-1" />
-        <UInput v-model.number="tiktok.follower_count" type="number" min="0" :placeholder="$t('profile.followers')" class="w-32" />
-      </div>
+      <UFormField :label="$t('profile.channels')">
+        <template #hint><FieldHint :text="$t('channels.hint')" /></template>
+        <ChannelEditor v-model="channels" />
+      </UFormField>
       <UFormField :label="$t('onboarding.niches')">
         <template #hint><FieldHint :text="$t('onboarding.nichesHint')" /></template>
         <NichePicker v-model="selectedNiches" />

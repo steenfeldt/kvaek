@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { ref, watch } from "vue";
+import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
 import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
 import { api, apiUpload } from "../lib/api";
 import { cityFromProfile, type CityOption } from "../lib/cities";
+import type { Channel } from "../lib/platforms";
 
 interface Photo {
   id: number;
@@ -28,19 +30,9 @@ const queryClient = useQueryClient();
 const toast = useToast();
 const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => api<Profile>("/me/profile") });
 
-const PLATFORMS = ["instagram", "tiktok"] as const;
-const PLATFORM_LABEL: Record<(typeof PLATFORMS)[number], string> = { instagram: "Instagram", tiktok: "TikTok" };
-
-function emptyChannels() {
-  return Object.fromEntries(PLATFORMS.map((p) => [p, { handle: "", follower_count: 0 }])) as Record<
-    (typeof PLATFORMS)[number],
-    { handle: string; follower_count: number }
-  >;
-}
-
 const form = ref({ display_name: "", city: null as CityOption | null, bio: "", niches: [] as string[] });
-// One row per platform; clearing the handle removes the channel on save.
-const channels = ref(emptyChannels());
+// Channels are saved together with the rest of the form.
+const channels = ref<Channel[]>([]);
 watch(
   profile,
   (p) => {
@@ -51,11 +43,7 @@ watch(
       bio: p.bio,
       niches: p.niches.map((n) => n.slug),
     };
-    channels.value = emptyChannels();
-    for (const s of p.social_links) {
-      if (s.platform in channels.value)
-        channels.value[s.platform as (typeof PLATFORMS)[number]] = { handle: s.handle, follower_count: s.follower_count };
-    }
+    channels.value = p.social_links.map((s) => ({ ...s }));
   },
   { immediate: true },
 );
@@ -68,7 +56,7 @@ const saveMutation = useMutation({
         ...form.value,
         city: undefined,
         city_id: form.value.city?.id ?? null,
-        social_links: PLATFORMS.map((platform) => ({ platform, ...channels.value[platform] })),
+        social_links: channels.value.filter((c) => c.handle.trim()),
       }),
     }),
   onSuccess: (data) => {
@@ -166,26 +154,8 @@ function onEvidence(event: Event) {
           <NichePicker v-model="form.niches" />
         </UFormField>
         <UFormField :label="$t('profile.channels')">
-          <template #hint><FieldHint :text="$t('profile.channelsHint')" /></template>
-          <div class="flex flex-col gap-2">
-            <div v-for="platform in PLATFORMS" :key="platform" class="flex items-center gap-2">
-              <UInput v-model="channels[platform].handle" :placeholder="`${PLATFORM_LABEL[platform]} @`" class="flex-1" />
-              <UInput
-                v-model.number="channels[platform].follower_count"
-                type="number"
-                min="0"
-                :placeholder="$t('profile.followers')"
-                class="w-32"
-              />
-              <UBadge
-                v-if="profile.social_links.find((s) => s.platform === platform)?.verified"
-                color="success"
-                variant="subtle"
-              >
-                ✔
-              </UBadge>
-            </div>
-          </div>
+          <template #hint><FieldHint :text="$t('channels.hint')" /></template>
+          <ChannelEditor v-model="channels" />
         </UFormField>
         <UButton type="submit" :loading="saveMutation.isPending.value" block>
           {{ $t("profile.save") }}

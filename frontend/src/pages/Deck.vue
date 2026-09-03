@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, ref } from "vue";
 import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
+import { platformInfo } from "../lib/platforms";
 
 interface Social {
   platform: string;
@@ -114,7 +115,7 @@ function swipe(direction: "like" | "pass") {
       />
       <div
         v-if="top"
-        class="absolute inset-0 touch-none overflow-hidden rounded-2xl bg-white shadow-lg select-none"
+        class="relative touch-none overflow-hidden rounded-2xl bg-white shadow-lg select-none"
         :style="cardStyle"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
@@ -136,8 +137,10 @@ function swipe(direction: "like" | "pass") {
             <UBadge v-for="n in top.niches" :key="n" color="primary" variant="subtle" size="sm">{{ n }}</UBadge>
           </div>
           <div class="flex gap-4 text-sm text-ink-600">
-            <span v-for="s in top.socials" :key="s.platform">
-              {{ s.platform }}: {{ s.follower_count.toLocaleString("da-DK") }} {{ $t("deck.followers") }}
+            <span v-for="s in top.socials" :key="s.platform" class="flex items-center gap-1">
+              <UIcon :name="platformInfo(s.platform).icon" class="size-4" :title="platformInfo(s.platform).label" />
+              {{ s.follower_count.toLocaleString("da-DK") }}
+              <span class="sr-only">{{ platformInfo(s.platform).label }} {{ $t("deck.followers") }}</span>
             </span>
           </div>
         </div>

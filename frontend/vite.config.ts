@@ -2,6 +2,7 @@ import ui from "@nuxt/ui/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { PLATFORMS } from "./src/lib/platforms";
 
 const backend = process.env.VITE_BACKEND_URL || "http://localhost:8000";
 
@@ -12,6 +13,10 @@ export default defineConfig({
       // Light-only for now: without this, Nuxt UI syncs a `dark` class with
       // the system scheme and our light-only design breaks.
       colorMode: false,
+      // Bundle icons from the installed @iconify-json collections (lucide +
+      // simple-icons) instead of fetching them at runtime. The scan only picks
+      // up `i-*` names in templates, so the platform icons are listed explicitly.
+      icon: { clientBundle: { scan: true, icons: PLATFORMS.map((p) => p.icon) } },
       ui: {
         // Palette roles per the brand sheet: sage = primary actions,
         // terracotta (clay) = secondary/badges, fjord = links/data/info.

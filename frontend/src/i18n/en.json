@@ -154,7 +154,6 @@
     "addPhoto": "Add photo",
     "save": "Save changes",
     "channels": "Your channels",
-    "channelsHint": "Enter your username and approximate follower count per channel. Clear the username to remove a channel. Changing a username means the follower count must be verified again.",
     "followers": "Followers",
     "saved": "Saved",
     "listed": "Your profile is visible to brands",
@@ -191,6 +190,12 @@
     "step3d": "You set your own price in the negotiation. No commission.",
     "cta": "Create creator profile",
     "brandInstead": "Are you a business? See how it works for you"
+  },
+  "channels": {
+    "add": "Add channel",
+    "remove": "Remove channel",
+    "empty": "No channels yet. Add at least one so brands can see your reach.",
+    "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the follower count must be verified again."
   },
   "city": {
     "search": "Search for your city …",
