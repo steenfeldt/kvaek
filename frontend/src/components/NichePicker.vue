@@ -72,7 +72,8 @@ const suggestMutation = useMutation({
         {{ $t("niches.suggest") }}
       </button>
     </div>
-    <form v-if="suggesting" class="flex flex-col gap-2" @submit.prevent="suggestMutation.mutate()">
+    <!-- Not a <form>: the picker sits inside the profile/onboarding form. -->
+    <div v-if="suggesting" class="flex flex-col gap-2">
       <div class="flex gap-2">
         <UInput
           v-model="suggestion"
@@ -80,14 +81,20 @@ const suggestMutation = useMutation({
           maxlength="50"
           autofocus
           class="flex-1"
+          @keydown.enter.prevent="suggestion.trim().length >= 2 && suggestMutation.mutate()"
         />
-        <UButton type="submit" :loading="suggestMutation.isPending.value" :disabled="suggestion.trim().length < 2">
+        <UButton
+          type="button"
+          :loading="suggestMutation.isPending.value"
+          :disabled="suggestion.trim().length < 2"
+          @click="suggestMutation.mutate()"
+        >
           {{ $t("niches.send") }}
         </UButton>
-        <UButton variant="ghost" color="neutral" @click="suggesting = false">{{ $t("portfolio.cancel") }}</UButton>
+        <UButton type="button" variant="ghost" color="neutral" @click="suggesting = false">{{ $t("portfolio.cancel") }}</UButton>
       </div>
       <p class="text-xs text-ink-600">{{ $t("niches.suggestHint") }}</p>
       <p v-if="suggestError" class="text-xs text-red-700">{{ suggestError }}</p>
-    </form>
+    </div>
   </div>
 </template>
