@@ -61,18 +61,18 @@ def _card(profile: CreatorProfile) -> DeckCardOut:
 
 
 @router.get("/deck", response=list[DeckCardOut])
-def deck(request):
+def deck(request, tag: str = ""):
+    """The swipe pool, optionally narrowed to creators whose bio carries `#tag`."""
     brand = _brand_or_403(request)
     seen_since = timezone.now() - timedelta(days=SEEN_GATE_DAYS)
     seen_ids = SwipeEvent.objects.filter(brand=brand, created_at__gte=seen_since).values_list(
         "creator_id", flat=True
     )
-    profiles = (
-        CreatorProfile.objects.filter(listed=True)
-        .exclude(id__in=seen_ids)
-        .prefetch_related("niches", "photos", "social_links")
-        .order_by("?")[:DECK_SIZE]
-    )
+    pool = CreatorProfile.objects.filter(listed=True).exclude(id__in=seen_ids)
+    tag = tag.strip().lstrip("#").lower()
+    if tag:
+        pool = pool.filter(bio_tags__contains=[tag])
+    profiles = pool.prefetch_related("niches", "photos", "social_links").order_by("?")[:DECK_SIZE]
     return [_card(p) for p in profiles]
 
 

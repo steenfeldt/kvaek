@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import HashtagPicker from "../components/HashtagPicker.vue";
+import HashtagText from "../components/HashtagText.vue";
 import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
-import HashtagText from "../components/HashtagText.vue";
 import { platformInfo } from "../lib/platforms";
 
 interface Social {
@@ -23,14 +24,17 @@ interface Card {
 }
 
 const queryClient = useQueryClient();
+// Optional hashtag filter (bare tag, no '#'); each tag has its own deck.
+const tag = ref("");
 const { data, isFetching } = useQuery({
-  queryKey: ["deck"],
-  queryFn: () => api<Card[]>("/deck"),
+  queryKey: computed(() => ["deck", tag.value]),
+  queryFn: () => api<Card[]>(tag.value ? `/deck?tag=${encodeURIComponent(tag.value)}` : "/deck"),
   staleTime: 60_000,
 });
 
 // Cards swiped locally this round; cleared when the deck is refetched.
 const removed = ref(new Set<number>());
+watch(tag, () => (removed.value = new Set()));
 const stack = computed(() => (data.value ?? []).filter((c) => !removed.value.has(c.id)));
 const top = computed(() => stack.value[0] ?? null);
 
@@ -108,6 +112,7 @@ function swipe(direction: "like" | "pass") {
 
 <template>
   <main class="mx-auto flex max-w-md flex-col gap-6 px-6 py-8">
+    <HashtagPicker v-model="tag" />
     <div class="relative" style="min-height: 480px">
       <!-- next card peeks behind -->
       <div
@@ -160,7 +165,7 @@ function swipe(direction: "like" | "pass") {
         </div>
       </div>
       <div v-else-if="!isFetching" class="flex h-full min-h-[480px] items-center justify-center">
-        <p class="text-center text-ink-600">{{ $t("deck.empty") }}</p>
+        <p class="text-center text-ink-600">{{ tag ? $t("deck.emptyTag", { tag }) : $t("deck.empty") }}</p>
       </div>
     </div>
 

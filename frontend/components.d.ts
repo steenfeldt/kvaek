@@ -15,6 +15,7 @@ declare module 'vue' {
     ChannelEditor: typeof import('./src/components/ChannelEditor.vue')['default']
     CityPicker: typeof import('./src/components/CityPicker.vue')['default']
     FieldHint: typeof import('./src/components/FieldHint.vue')['default']
+    HashtagPicker: typeof import('./src/components/HashtagPicker.vue')['default']
     HashtagText: typeof import('./src/components/HashtagText.vue')['default']
     InstallApp: typeof import('./src/components/InstallApp.vue')['default']
     KvaekkerGame: typeof import('./src/components/KvaekkerGame.vue')['default']

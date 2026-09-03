@@ -63,6 +63,10 @@
   },
   "deck": {
     "empty": "Ikke flere profiler lige nu — kom tilbage senere.",
+    "emptyTag": "Ingen flere creators med #{tag} lige nu — prøv et andet hashtag.",
+    "filterPlaceholder": "Filtrér på hashtag …",
+    "noTags": "Ingen hashtags matcher",
+    "clearFilter": "Fjern filter",
     "like": "Gem",
     "pass": "Videre",
     "followers": "følgere"

@@ -63,6 +63,10 @@
   },
   "deck": {
     "empty": "No more profiles right now — check back later.",
+    "emptyTag": "No more creators with #{tag} right now — try another hashtag.",
+    "filterPlaceholder": "Filter by hashtag …",
+    "noTags": "No matching hashtags",
+    "clearFilter": "Clear filter",
     "like": "Save",
     "pass": "Pass",
     "followers": "followers"
