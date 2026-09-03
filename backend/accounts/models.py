@@ -1,6 +1,10 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from datetime import timedelta
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+
+from .crypto import EncryptedTextField
 from django.utils import timezone
 
 from .storage import private_storage
@@ -108,13 +112,17 @@ class CreatorProfile(models.Model):
     niches = models.ManyToManyField(NicheTag, blank=True, related_name="creators")
     # A creator appears in the swipe pool only when listed (completeness bar + moderation).
     listed = models.BooleanField(default=False)
-    verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def city_name(self) -> str:
         return self.city.name if self.city else ""
+
+    @property
+    def verified(self) -> bool:
+        """The profile badge: at least one channel with confirmed ownership."""
+        return any(s.verified_at is not None for s in self.social_links.all())
 
     def __str__(self):
         return self.display_name
@@ -138,20 +146,104 @@ class SocialLink(models.Model):
         SNAPCHAT = "snapchat", "Snapchat"
         LINKEDIN = "linkedin", "LinkedIn"
 
+    class VerificationMethod(models.TextChoices):
+        NONE = "none", "Not verified"
+        MANUAL = "manual", "Manual (screenshot reviewed by staff)"
+        OAUTH = "oauth", "OAuth"  # Phase B
+
+    # A verified channel with a live sync degrades to "stale" after this.
+    STALE_AFTER = timedelta(days=3)
+    MAX_SYNC_FAILURES = 3
+
     profile = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="social_links")
     platform = models.CharField(max_length=20, choices=Platform.choices)
+    # Re-resolved to the platform's canonical spelling on every sync. Never
+    # shown to brands before a deal (anti-circumvention).
     handle = models.CharField(max_length=100)
-    # Self-reported until platform OAuth lands; verified_at marks API-confirmed stats.
+    # The platform's stable account id, set on first successful lookup and
+    # immutable after; unique per platform so one account can't back two profiles.
+    external_id = models.CharField(max_length=100, null=True, blank=True)
+    # Self-reported by the creator; live numbers live in ChannelMetricSnapshot.
     follower_count = models.PositiveIntegerField(default=0)
+    verification_method = models.CharField(
+        max_length=10, choices=VerificationMethod.choices, default=VerificationMethod.NONE
+    )
     verified_at = models.DateTimeField(null=True, blank=True)
+    last_sync_at = models.DateTimeField(null=True, blank=True)
+    sync_failures = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["profile", "platform"], name="unique_platform_per_profile"),
+            models.UniqueConstraint(
+                fields=["platform", "external_id"],
+                condition=models.Q(external_id__isnull=False),
+                name="unique_external_id_per_platform",
+            ),
         ]
 
     def __str__(self):
         return f"{self.get_platform_display()} @{self.handle}"
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verified_at is not None
+
+    @property
+    def state(self) -> str:
+        """Display state: verified | stale | unverified. Verification decays
+        when the sync keeps failing or has gone quiet; it is never deleted."""
+        if not self.is_verified:
+            return "unverified"
+        if self.sync_failures >= self.MAX_SYNC_FAILURES:
+            return "stale"
+        if self.last_sync_at and timezone.now() - self.last_sync_at > self.STALE_AFTER:
+            return "stale"
+        return "verified"
+
+    def clear_verification(self) -> None:
+        """A changed handle means a different account: drop ownership proof,
+        the bound id and the failure counter. Snapshots stay as history."""
+        self.verified_at = None
+        self.verification_method = self.VerificationMethod.NONE
+        self.external_id = None
+        self.last_sync_at = None
+        self.sync_failures = 0
+
+
+class ChannelCredential(models.Model):
+    """Phase B OAuth tokens — separate table so channel queries never touch
+    secrets. Nothing writes here until a provider's OAuth flow is built."""
+
+    channel = models.OneToOneField(SocialLink, on_delete=models.CASCADE, related_name="credential")
+    access_token = EncryptedTextField()
+    refresh_token = EncryptedTextField(blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    scopes_granted = ArrayField(models.CharField(max_length=80), default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ChannelMetricSnapshot(models.Model):
+    """Append-only metrics per sync; gaps are as informative as values."""
+
+    channel = models.ForeignKey(SocialLink, on_delete=models.CASCADE, related_name="snapshots")
+    captured_at = models.DateTimeField(default=timezone.now)
+    followers = models.BigIntegerField(null=True, blank=True)
+    posts = models.BigIntegerField(null=True, blank=True)
+    engagement_rate = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
+    raw = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-captured_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["channel", "captured_at"], name="one_snapshot_per_instant"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValueError("ChannelMetricSnapshot is append-only")
+        super().save(*args, **kwargs)
 
 
 class ProfilePhoto(models.Model):
@@ -222,6 +314,10 @@ class VerificationRequest(models.Model):
         REJECTED = "rejected", "Rejected"
 
     creator = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="verification_requests")
+    # Ownership is proven per channel (a screenshot of that platform's insights).
+    channel = models.ForeignKey(
+        SocialLink, null=True, blank=True, on_delete=models.SET_NULL, related_name="verification_requests"
+    )
     evidence = models.ImageField(upload_to="verification/%Y/%m/", storage=private_storage)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     note = models.TextField(blank=True)

@@ -66,9 +66,15 @@ docker compose exec backend pytest
   URL) and the payment-return page's reconcile-on-poll confirms payments
   instead; deployed environments get the webhook automatically via
   `BACKEND_URL`.
-- **Verification**: creators upload evidence from their profile; admin
-  *Verification requests* → approve/reject actions (approve flips the
-  creator's verified badge).
+- **Verification**: per channel. Creators upload a screenshot of that
+  channel's analytics from their profile; admin *Verification requests* →
+  approve/reject (approve marks the channel verified; the profile badge means
+  "at least one verified channel"). Brands always see whether a number is
+  self-reported or pulled from the platform.
+- **Channel metrics**: `manage.py sync_channels` appends daily snapshots for
+  platforms with a public lookup (YouTube via `YOUTUBE_API_KEY`, Instagram via
+  `META_IG_USER_ID`/`META_ACCESS_TOKEN`). Providers live in
+  `accounts/providers/`; the OAuth methods are stubs until Phase B.
 - **GDPR**: verification evidence lives in `backend/private_media/` (never
   web-served; admins view it via an authenticated staff link). Erasure:
   `manage.py erase_user <email>` or the admin action on Users — anonymizes

@@ -52,6 +52,19 @@ Site.objects.filter(id=1).update(domain='kvaek.com', name='Kvæk')"
 dcp exec backend python manage.py sync_cities   # Danish towns for the city picker (rerun now and then)
 ```
 
+**8. Cron** (as root on the server): nightly channel metrics sync. Without
+`YOUTUBE_API_KEY` / `META_*` in `.env.prod` it runs and skips everything.
+
+```
+17 4 * * * cd /opt/kvaek && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py sync_channels --jitter 600 >> /root/backups/sync_channels.log 2>&1
+```
+
+Channel-related env vars in `.env.prod`: `YOUTUBE_API_KEY` (Google Cloud API
+key with YouTube Data API v3 enabled), `META_IG_USER_ID` + `META_ACCESS_TOKEN`
+(our own Instagram Business account's long-lived token; expires after 60 days,
+refresh it), `CHANNEL_TOKEN_KEY` (Fernet key for stored OAuth tokens; generate
+with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`).
+
 Optionally seed demo creators: `dcp exec backend python manage.py seed_creators --count 25`
 (remove before real launch: `--clear`).
 

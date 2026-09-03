@@ -6,6 +6,7 @@ from django.utils.html import format_html
 
 from .models import (
     BrandProfile,
+    ChannelMetricSnapshot,
     City,
     CreatorProfile,
     NicheTag,
@@ -43,6 +44,8 @@ class UserAdmin(BaseUserAdmin):
 class SocialLinkInline(admin.TabularInline):
     model = SocialLink
     extra = 0
+    fields = ["platform", "handle", "follower_count", "verification_method", "verified_at", "last_sync_at", "sync_failures", "external_id"]
+    readonly_fields = ["last_sync_at", "sync_failures", "external_id"]
 
 
 class ProfilePhotoInline(admin.TabularInline):
@@ -52,8 +55,12 @@ class ProfilePhotoInline(admin.TabularInline):
 
 @admin.register(CreatorProfile)
 class CreatorProfileAdmin(admin.ModelAdmin):
-    list_display = ["display_name", "user", "city", "listed", "verified", "created_at"]
-    list_filter = ["listed", "verified"]
+    list_display = ["display_name", "user", "city", "listed", "is_verified", "created_at"]
+    list_filter = ["listed"]
+
+    @admin.display(boolean=True, description="Verified")
+    def is_verified(self, obj):
+        return obj.verified
     search_fields = ["display_name", "user__email"]
     inlines = [SocialLinkInline, ProfilePhotoInline]
 
@@ -66,7 +73,7 @@ class BrandProfileAdmin(admin.ModelAdmin):
 
 @admin.register(VerificationRequest)
 class VerificationRequestAdmin(admin.ModelAdmin):
-    list_display = ["creator", "status", "created_at", "reviewed_by", "evidence_link"]
+    list_display = ["creator", "channel", "status", "created_at", "reviewed_by", "evidence_link"]
     list_filter = ["status"]
     actions = ["approve", "reject"]
     exclude = ["evidence"]
@@ -79,15 +86,19 @@ class VerificationRequestAdmin(admin.ModelAdmin):
         url = reverse("verification-evidence", args=[obj.pk])
         return format_html('<a href="{}" target="_blank">View evidence</a>', url)
 
-    @admin.action(description="Approve selected (marks creator verified)")
+    @admin.action(description="Approve selected (marks the channel verified)")
     def approve(self, request, queryset):
-        for vr in queryset.filter(status=VerificationRequest.Status.PENDING):
+        for vr in queryset.filter(status=VerificationRequest.Status.PENDING).select_related("channel"):
+            if vr.channel is None:
+                self.message_user(request, f"{vr.pk}: no channel attached, skipped", level="warning")
+                continue
             vr.status = VerificationRequest.Status.APPROVED
             vr.reviewed_by = request.user
             vr.reviewed_at = timezone.now()
             vr.save(update_fields=["status", "reviewed_by", "reviewed_at"])
-            vr.creator.verified = True
-            vr.creator.save(update_fields=["verified"])
+            vr.channel.verification_method = SocialLink.VerificationMethod.MANUAL
+            vr.channel.verified_at = timezone.now()
+            vr.channel.save(update_fields=["verification_method", "verified_at"])
 
     @admin.action(description="Reject selected")
     def reject(self, request, queryset):
@@ -118,6 +129,19 @@ class NicheTagAdmin(admin.ModelAdmin):
         for tag in queryset:
             tag.creators.clear()
         queryset.update(status=NicheTag.Status.REJECTED)
+
+
+@admin.register(ChannelMetricSnapshot)
+class ChannelMetricSnapshotAdmin(admin.ModelAdmin):
+    list_display = ["channel", "captured_at", "followers", "posts"]
+    list_filter = ["channel__platform"]
+    readonly_fields = ["channel", "captured_at", "followers", "posts", "engagement_rate", "raw"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(City)

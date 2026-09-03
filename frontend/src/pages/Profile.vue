@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import Sortable from "sortablejs";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
@@ -9,7 +10,7 @@ import FieldHint from "../components/FieldHint.vue";
 import NichePicker from "../components/NichePicker.vue";
 import { api, apiUpload } from "../lib/api";
 import { cityFromProfile, type CityOption } from "../lib/cities";
-import type { Channel } from "../lib/platforms";
+import type { Channel, ChannelStatus } from "../lib/platforms";
 
 interface Photo {
   id: number;
@@ -29,15 +30,15 @@ interface Profile {
   bio: string;
   listed: boolean;
   verified: boolean;
-  verification_status: string | null;
   niches: { name: string; slug: string }[];
-  social_links: { platform: string; handle: string; follower_count: number; verified: boolean }[];
+  social_links: ({ platform: string; handle: string; follower_count: number } & ChannelStatus)[];
   photo: Photo | null;
   portfolio: PortfolioItem[];
 }
 
 const queryClient = useQueryClient();
 const toast = useToast();
+const { t } = useI18n();
 const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => api<Profile>("/me/profile") });
 
 const form = ref({ display_name: "", city: null as CityOption | null, bio: "", niches: [] as string[] });
@@ -54,7 +55,7 @@ watch(
       bio: p.bio,
       niches: p.niches.map((n) => n.slug),
     };
-    channels.value = p.social_links.map((s) => ({ ...s }));
+    channels.value = p.social_links.map((s) => ({ platform: s.platform, handle: s.handle, follower_count: s.follower_count }));
   },
   { immediate: true },
 );
@@ -166,19 +167,21 @@ watch(portfolioList, (el) => {
 });
 onBeforeUnmount(() => sortable?.destroy());
 
-const evidenceInput = ref<HTMLInputElement | null>(null);
-
+// Ownership is proven per channel: a screenshot of that platform's insights,
+// reviewed by staff. Unsaved handle edits are saved first so the request
+// attaches to the right account.
+const channelStatuses = computed<Record<string, ChannelStatus>>(() =>
+  Object.fromEntries((profile.value?.social_links ?? []).map((s) => [s.platform, s])),
+);
 const verifyMutation = useMutation({
-  mutationFn: (file: File) => apiUpload("/me/verification", file),
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
+  mutationFn: ({ platform, file }: { platform: string; file: File }) =>
+    apiUpload(`/me/channels/${platform}/verification`, file),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    toast.add({ title: t("channels.verifySent"), color: "success" });
+  },
   onError: (e) => toast.add({ title: (e as Error).message, color: "error" }),
 });
-
-function onEvidence(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (file) verifyMutation.mutate(file);
-  if (evidenceInput.value) evidenceInput.value.value = "";
-}
 </script>
 
 <template>
@@ -304,7 +307,12 @@ function onEvidence(event: Event) {
         </UFormField>
         <UFormField :label="$t('profile.channels')" required>
           <template #hint><FieldHint :text="$t('channels.hint')" /></template>
-          <ChannelEditor v-model="channels" />
+          <ChannelEditor
+            v-model="channels"
+            :statuses="channelStatuses"
+            @verify="(platform, file) => verifyMutation.mutate({ platform, file })"
+          />
+          <p class="mt-2 text-xs text-ink-600">{{ $t("channels.verifyHint") }}</p>
         </UFormField>
         <UButton type="submit" :loading="saveMutation.isPending.value" block :disabled="!hasChannel">
           {{ $t("profile.save") }}
@@ -312,27 +320,5 @@ function onEvidence(event: Event) {
       </form>
     </UCard>
 
-    <UCard v-if="!profile.verified">
-      <h2 class="mb-1 font-semibold">{{ $t("profile.verifyTitle") }}</h2>
-      <template v-if="profile.verification_status === 'pending'">
-        <UAlert color="info" variant="subtle" :description="$t('profile.verifyPending')" />
-      </template>
-      <template v-else>
-        <p class="mb-3 text-sm text-ink-600">{{ $t("profile.verifyHint") }}</p>
-        <UAlert
-          v-if="profile.verification_status === 'rejected'"
-          color="warning"
-          variant="subtle"
-          :description="$t('profile.verifyRejected')"
-          class="mb-3"
-        />
-        <label>
-          <input ref="evidenceInput" type="file" accept="image/*" class="hidden" @change="onEvidence" />
-          <UButton as="span" variant="outline" :loading="verifyMutation.isPending.value" class="cursor-pointer">
-            {{ $t("profile.verifyCta") }}
-          </UButton>
-        </label>
-      </template>
-    </UCard>
   </main>
 </template>

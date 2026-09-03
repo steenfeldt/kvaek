@@ -37,6 +37,11 @@ services:
       EMAIL_USE_TLS: "1"
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-Kvæk <noreply@kvaek.com>}
       MOLLIE_API_KEY: ${MOLLIE_API_KEY:-}
+      # Social channel lookups (Phase A); empty keeps the provider off.
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      META_IG_USER_ID: ${META_IG_USER_ID:-}
+      META_ACCESS_TOKEN: ${META_ACCESS_TOKEN:-}
+      CHANNEL_TOKEN_KEY: ${CHANNEL_TOKEN_KEY:-}
       INVOICE_SELLER_NAME: ${INVOICE_SELLER_NAME:-Kvæk (under stiftelse)}
       INVOICE_SELLER_CVR: ${INVOICE_SELLER_CVR:-}
       INVOICE_SELLER_ADDRESS: ${INVOICE_SELLER_ADDRESS:-}

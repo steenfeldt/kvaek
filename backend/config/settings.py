@@ -113,6 +113,13 @@ if os.environ.get("GOOGLE_CLIENT_ID"):
 
 # --- email ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# Social channel integrations (Phase A: public lookups). Empty = provider off.
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+META_IG_USER_ID = os.environ.get("META_IG_USER_ID", "")
+META_ACCESS_TOKEN = os.environ.get("META_ACCESS_TOKEN", "")
+# Fernet key for stored OAuth tokens; derived from SECRET_KEY when empty.
+CHANNEL_TOKEN_KEY = os.environ.get("CHANNEL_TOKEN_KEY", "")
+
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "1025"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")

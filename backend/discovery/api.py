@@ -1,10 +1,11 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.utils import timezone
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
+from accounts.api import _channel_stats
 from accounts.models import CreatorProfile, NicheTag
 
 from .models import Shortlist, ShortlistEntry, SwipeEvent
@@ -23,9 +24,15 @@ def _brand_or_403(request):
 
 
 class SocialOut(Schema):
+    """Audience numbers as brands see them: no handle, but full provenance."""
+
     platform: str
-    follower_count: int
+    followers: int
+    source: str  # live | self_reported
+    approximate: bool = False
+    state: str  # verified | stale | unverified
     verified: bool
+    synced_at: datetime | None = None
 
 
 class PortfolioOut(Schema):
@@ -65,14 +72,7 @@ def _card(profile: CreatorProfile) -> DeckCardOut:
             )
             for i in profile.portfolio.all()
         ],
-        socials=[
-            SocialOut(
-                platform=s.platform,
-                follower_count=s.follower_count,
-                verified=s.verified_at is not None,
-            )
-            for s in profile.social_links.all()
-        ],
+        socials=[SocialOut(**_channel_stats(s)) for s in profile.social_links.all()],
     )
 
 
@@ -88,7 +88,7 @@ def deck(request, tag: str = ""):
     tag = tag.strip().lstrip("#").lower()
     if tag:
         pool = pool.filter(bio_tags__contains=[tag])
-    profiles = pool.prefetch_related("niches", "photos", "portfolio", "social_links").order_by("?")[:DECK_SIZE]
+    profiles = pool.prefetch_related("niches", "photos", "portfolio", "social_links__snapshots").order_by("?")[:DECK_SIZE]
     return [_card(p) for p in profiles]
 
 
@@ -135,7 +135,7 @@ def shortlist_detail(request, shortlist_id: int):
         raise HttpError(404, "Shortlist not found")
     profiles = CreatorProfile.objects.filter(
         shortlist_entries__shortlist=shortlist, listed=True
-    ).prefetch_related("niches", "photos", "portfolio", "social_links")
+    ).prefetch_related("niches", "photos", "portfolio", "social_links__snapshots")
     return [_card(p) for p in profiles]
 
 

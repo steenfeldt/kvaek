@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { PLATFORMS, platformInfo, type Channel } from "../lib/platforms";
+import { PLATFORMS, platformInfo, type Channel, type ChannelStatus } from "../lib/platforms";
 
-// One row per channel; "add" offers the platforms not yet used.
+// One row per channel; "add" offers the platforms not yet used. On the profile
+// page each row also shows its verification state and a verify action.
 const model = defineModel<Channel[]>({ required: true });
+const props = defineProps<{ statuses?: Record<string, ChannelStatus> }>();
+const emit = defineEmits<{ verify: [platform: string, file: File] }>();
+
+function status(platform: string): ChannelStatus | undefined {
+  return props.statuses?.[platform];
+}
+function onEvidence(platform: string, event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) emit("verify", platform, file);
+  input.value = "";
+}
 
 const addItems = computed(() =>
   PLATFORMS.filter((p) => !model.value.some((c) => c.platform === p.value)).map((p) => ({
@@ -41,7 +54,23 @@ function remove(index: number) {
         :placeholder="$t('profile.followers')"
         class="w-28"
       />
-      <UBadge v-if="channel.verified" color="success" variant="subtle">✔</UBadge>
+      <template v-if="statuses && status(channel.platform)">
+        <UBadge v-if="status(channel.platform)!.state === 'verified'" color="success" variant="subtle" :title="$t('channels.verifiedBadge')">
+          ✔
+        </UBadge>
+        <UBadge v-else-if="status(channel.platform)!.state === 'stale'" color="neutral" variant="subtle" :title="$t('channels.staleBadge')">
+          ✔
+        </UBadge>
+        <UBadge v-else-if="status(channel.platform)!.verification_status === 'pending'" color="info" variant="subtle" :title="$t('channels.pendingBadge')">
+          <UIcon name="i-lucide-clock" class="size-3.5" />
+        </UBadge>
+        <label v-else :title="status(channel.platform)!.verification_status === 'rejected' ? $t('channels.rejectedBadge') : ''">
+          <input type="file" accept="image/*" class="hidden" @change="onEvidence(channel.platform, $event)" />
+          <UButton as="span" size="xs" variant="outline" :color="status(channel.platform)!.verification_status === 'rejected' ? 'warning' : 'neutral'" class="cursor-pointer bg-white">
+            {{ $t("channels.verify") }}
+          </UButton>
+        </label>
+      </template>
       <UButton
         icon="i-lucide-x"
         variant="ghost"

@@ -118,7 +118,8 @@ def test_profile_patch_syncs_social_links(client, db):
     )
     assert res.status_code == 200
     links = {s["platform"]: s for s in res.json()["social_links"]}
-    assert links["instagram"] == {"platform": "instagram", "handle": "old", "follower_count": 150, "verified": True}
+    assert links["instagram"]["handle"] == "old" and links["instagram"]["follower_count"] == 150
+    assert links["instagram"]["verified"] is True and links["instagram"]["source"] == "self_reported"
     assert links["tiktok"]["handle"] == "newtok"
 
     # Changing the handle drops verification; an empty handle removes the channel.
@@ -334,3 +335,147 @@ def test_niche_suggestions_need_approval(client, db):
     assert client.post("/api/niches/suggest", {"name": "Niche 9"}, content_type="application/json").status_code == 409
     NicheTag.objects.filter(slug="niche-0").update(status=NicheTag.Status.REJECTED)
     assert client.post("/api/niches/suggest", {"name": "niche 0"}, content_type="application/json").status_code == 422
+
+
+def test_channel_verification_and_states(client, db):
+    from datetime import timedelta
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.utils import timezone
+
+    from accounts.models import ChannelMetricSnapshot, SocialLink, VerificationRequest
+
+    user = User.objects.create_user("chanver@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="Chan", listed=True)
+    link = SocialLink.objects.create(profile=profile, platform="tiktok", handle="chan", follower_count=5000)
+    client.force_login(user)
+
+    # Per-channel request → pending → staff approve → verified (manual).
+    assert client.post("/api/me/channels/youtube/verification", {"file": SimpleUploadedFile("a.png", _png(), "image/png")}).status_code == 404
+    res = client.post("/api/me/channels/tiktok/verification", {"file": SimpleUploadedFile("a.png", _png(), "image/png")})
+    assert res.status_code == 200
+    me = client.get("/api/me/profile").json()
+    assert me["social_links"][0]["verification_status"] == "pending" and me["verified"] is False
+    assert client.post("/api/me/channels/tiktok/verification", {"file": SimpleUploadedFile("b.png", _png(), "image/png")}).status_code == 409
+
+    vr = VerificationRequest.objects.get(channel=link)
+    from accounts.admin import VerificationRequestAdmin
+    from django.contrib.admin.sites import AdminSite
+    from django.test import RequestFactory
+
+    req = RequestFactory().get("/admin/")
+    req.user = User.objects.create_superuser("staff@example.com", password="x")
+    VerificationRequestAdmin(VerificationRequest, AdminSite()).approve(req, VerificationRequest.objects.filter(pk=vr.pk))
+    link.refresh_from_db()
+    assert link.verification_method == "manual" and link.state == "verified"
+    me = client.get("/api/me/profile").json()
+    assert me["verified"] is True and me["social_links"][0]["state"] == "verified"
+    assert me["social_links"][0]["verification_status"] is None
+
+    # Brands see the number as self-reported until a snapshot exists, then live.
+    brand = User.objects.create_user("vb@example.com")
+    BrandProfile.objects.create(user=brand, company_name="V ApS", cvr="33333333")
+    client.force_login(brand)
+    card = next(c for c in client.get("/api/deck").json() if c["display_name"] == "Chan")
+    assert card["verified"] is True
+    assert card["socials"][0] == {"platform": "tiktok", "followers": 5000, "source": "self_reported", "approximate": False, "state": "verified", "verified": True, "synced_at": None}
+    assert "handle" not in card["socials"][0]
+    snap = ChannelMetricSnapshot.objects.create(channel=link, followers=5200, posts=40, raw={"x": 1})
+    link.last_sync_at = timezone.now()
+    link.save()
+    card = next(c for c in client.get("/api/deck").json() if c["display_name"] == "Chan")
+    assert card["socials"][0]["followers"] == 5200 and card["socials"][0]["source"] == "live"
+    assert card["socials"][0]["synced_at"] is not None
+
+    # Snapshots are append-only; stale after 3 failures or a quiet sync.
+    snap.followers = 1
+    with pytest.raises(ValueError):
+        snap.save()
+    link.sync_failures = 3
+    assert link.state == "stale"
+    link.sync_failures = 0
+    link.last_sync_at = timezone.now() - timedelta(days=4)
+    assert link.state == "stale"
+
+    # Changing the handle drops the verification and the bound id.
+    link.external_id = "123"
+    link.last_sync_at = timezone.now()
+    link.save()
+    client.force_login(user)
+    client.patch("/api/me/profile", {"social_links": [{"platform": "tiktok", "handle": "someone-else", "follower_count": 1}]}, content_type="application/json")
+    link.refresh_from_db()
+    assert link.verified_at is None and link.external_id is None and link.verification_method == "none"
+    assert ChannelMetricSnapshot.objects.filter(channel=link).count() == 1  # history kept
+
+
+def test_encrypted_credential_roundtrip(db):
+    from accounts.models import ChannelCredential, SocialLink
+
+    user = User.objects.create_user("cred@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="Cred")
+    link = SocialLink.objects.create(profile=profile, platform="instagram", handle="c")
+    ChannelCredential.objects.create(channel=link, access_token="secret-token", refresh_token="r", scopes_granted=["a"])
+    stored = ChannelCredential.objects.get(channel=link)
+    assert stored.access_token == "secret-token" and stored.refresh_token == "r"
+    from django.db import connection
+
+    with connection.cursor() as cur:
+        cur.execute("SELECT access_token FROM accounts_channelcredential WHERE channel_id = %s", [link.id])
+        raw = cur.fetchone()[0]
+    assert "secret-token" not in raw and raw.startswith("gAAAA")
+
+
+def test_provider_registry_and_youtube_sync(db, monkeypatch, settings):
+    from accounts.channel_sync import sync_channel, syncable
+    from accounts.models import SocialLink
+    from accounts.providers import PROVIDERS, ProviderError, get_provider
+    from accounts.providers import youtube as yt
+
+    assert set(PROVIDERS) == set(SocialLink.Platform.values)
+    for platform in SocialLink.Platform.values:
+        p = get_provider(platform)
+        assert p.supports_oauth is False  # Phase B not built
+        with pytest.raises(NotImplementedError):
+            p.get_authorization_url("s")
+    assert not get_provider("tiktok").supports_public_lookup
+
+    user = User.objects.create_user("yt@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="YT")
+    link = SocialLink.objects.create(profile=profile, platform="youtube", handle="@SomeChannel", follower_count=10)
+    assert not syncable(link)  # no API key
+    settings.YOUTUBE_API_KEY = "k"
+    assert syncable(link)
+
+    class FakeResponse:
+        status_code = 200
+
+        def __init__(self, items):
+            self._items = items
+
+        def json(self):
+            return {"items": self._items}
+
+    calls = []
+
+    def fake_get(url, params, timeout):
+        calls.append(params)
+        item = {
+            "id": "UC123",
+            "snippet": {"customUrl": "@somechannel"},
+            "statistics": {"subscriberCount": "12300", "videoCount": "87"},
+        }
+        return FakeResponse([item])
+
+    monkeypatch.setattr(yt.requests, "get", fake_get)
+    snap = sync_channel(link)
+    link.refresh_from_db()
+    assert link.external_id == "UC123" and link.handle == "somechannel" and link.sync_failures == 0
+    assert snap.followers == 12300 and snap.posts == 87 and snap.raw["id"] == "UC123"
+    assert calls[0]["forHandle"] == "@SomeChannel" and calls[1]["id"] == "UC123"
+
+    # A failure bumps the counter and writes no snapshot.
+    monkeypatch.setattr(yt.requests, "get", lambda url, params, timeout: FakeResponse([]))
+    with pytest.raises(ProviderError):
+        sync_channel(link)
+    link.refresh_from_db()
+    assert link.sync_failures == 1 and link.snapshots.count() == 1

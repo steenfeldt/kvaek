@@ -10,6 +10,7 @@ from io import BytesIO
 import requests
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from django.utils.text import slugify
 from PIL import Image
 
@@ -139,14 +140,22 @@ class Command(BaseCommand):
                 city=city_obj,
                 bio=bio,
                 listed=True,
-                verified=random.random() < 0.25,
             )
             niches = {main_niche} | set(random.sample(NICHES, random.randint(0, 2)))
             profile.niches.set([tags[n] for n in niches])
 
             handle = _handle(name)
             SocialLink.objects.create(
-                profile=profile, platform=SocialLink.Platform.INSTAGRAM, handle=handle, follower_count=_followers()
+                profile=profile,
+                platform=SocialLink.Platform.INSTAGRAM,
+                handle=handle,
+                follower_count=_followers(),
+                # A quarter of seeded creators carry a manually verified channel.
+                **(
+                    {"verification_method": SocialLink.VerificationMethod.MANUAL, "verified_at": timezone.now()}
+                    if random.random() < 0.25
+                    else {}
+                ),
             )
             if random.random() < 0.6:
                 SocialLink.objects.create(

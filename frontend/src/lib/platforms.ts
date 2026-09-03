@@ -22,5 +22,23 @@ export interface Channel {
   platform: string;
   handle: string;
   follower_count: number;
-  verified?: boolean;
+}
+
+/** Server-derived display state of a channel (see SocialLink.state). */
+export interface ChannelStatus {
+  state: "verified" | "stale" | "unverified";
+  verification_status: "pending" | "rejected" | null;
+  source: "live" | "self_reported";
+  synced_at: string | null;
+  supports_oauth: boolean;
+}
+
+/** Public numbers as brands see them. */
+export interface SocialStat {
+  platform: string;
+  followers: number;
+  source: "live" | "self_reported";
+  approximate: boolean;
+  state: "verified" | "stale" | "unverified";
+  synced_at: string | null;
 }

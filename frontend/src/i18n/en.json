@@ -70,7 +70,12 @@
     "clearFilter": "Clear filter",
     "like": "Save",
     "pass": "Pass",
-    "followers": "followers"
+    "followers": "followers",
+    "approx": "approx.",
+    "updated": "updated {date}",
+    "selfReported": "self-reported",
+    "ownershipVerified": "Ownership verified",
+    "ownershipStale": "Ownership verified, but the numbers could not be refreshed"
   },
   "creatorHome": {
     "savedCount": "{count} brands saved you in the last week",
@@ -216,7 +221,14 @@
     "add": "Add channel",
     "remove": "Remove channel",
     "empty": "No channels yet. Add at least one so brands can see your reach.",
-    "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the follower count must be verified again."
+    "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the channel must be verified again.",
+    "verify": "Verify",
+    "verifyHint": "Verify each channel with a screenshot of its analytics (e.g. Instagram Insights or TikTok Analytics) showing your username. We review it manually. Unverified numbers are shown to brands as self-reported.",
+    "verifySent": "Screenshot received — we'll review it shortly.",
+    "verifiedBadge": "Ownership verified",
+    "staleBadge": "Verified, but the numbers could not be refreshed recently",
+    "pendingBadge": "Awaiting review",
+    "rejectedBadge": "Last screenshot was rejected — try a clearer one"
   },
   "niches": {
     "suggest": "Suggest a niche",

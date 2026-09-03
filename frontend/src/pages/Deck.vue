@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import HashtagPicker from "../components/HashtagPicker.vue";
 import HashtagText from "../components/HashtagText.vue";
 import ReportButton from "../components/ReportButton.vue";
 import { api } from "../lib/api";
 import { platformInfo } from "../lib/platforms";
 
-interface Social {
-  platform: string;
-  follower_count: number;
-  verified: boolean;
-}
+import type { SocialStat } from "../lib/platforms";
+
+type Social = SocialStat;
 interface PortfolioItem {
   id: number;
   media_type: "image" | "video";
@@ -33,6 +32,23 @@ interface Card {
 
 // Portfolio item opened in a modal from the card's thumbnail strip.
 const openItem = ref<PortfolioItem | null>(null);
+
+// Every number says where it came from: pulled from the platform (with a
+// date) or typed in by the creator.
+const { t, locale } = useI18n();
+function statLabel(s: Social): string {
+  if (s.source === "live" && s.synced_at) {
+    const date = new Date(s.synced_at).toLocaleDateString(locale.value === "da" ? "da-DK" : "en-GB", { day: "numeric", month: "short" });
+    return t("deck.updated", { date });
+  }
+  return t("deck.selfReported");
+}
+function statTitle(s: Social): string {
+  const parts = [platformInfo(s.platform).label, statLabel(s)];
+  if (s.state === "verified") parts.push(t("deck.ownershipVerified"));
+  else if (s.state === "stale") parts.push(t("deck.ownershipStale"));
+  return parts.join(" · ");
+}
 
 const queryClient = useQueryClient();
 // Optional hashtag filter (bare tag, no '#'); each tag has its own deck.
@@ -168,10 +184,15 @@ function swipe(direction: "like" | "pass") {
               <UIcon v-if="item.media_type === 'video'" name="i-lucide-play" class="absolute inset-0 m-auto size-6 text-white drop-shadow" />
             </button>
           </div>
-          <div class="flex gap-4 text-sm text-ink-600">
-            <span v-for="s in top.socials" :key="s.platform" class="flex items-center gap-1">
-              <UIcon :name="platformInfo(s.platform).icon" class="size-4" :title="platformInfo(s.platform).label" />
-              {{ s.follower_count.toLocaleString("da-DK") }}
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-600">
+            <span v-for="s in top.socials" :key="s.platform" class="flex items-center gap-1" :title="statTitle(s)">
+              <UIcon :name="platformInfo(s.platform).icon" class="size-4" />
+              <span>
+                <template v-if="s.approximate">{{ $t("deck.approx") }}&nbsp;</template>{{ s.followers.toLocaleString("da-DK") }}
+              </span>
+              <UIcon v-if="s.state === 'verified'" name="i-lucide-badge-check" class="size-4 text-sage-600" />
+              <UIcon v-else-if="s.state === 'stale'" name="i-lucide-badge-check" class="size-4 text-ink-300" />
+              <span class="text-xs text-ink-500">{{ statLabel(s) }}</span>
               <span class="sr-only">{{ platformInfo(s.platform).label }} {{ $t("deck.followers") }}</span>
             </span>
           </div>

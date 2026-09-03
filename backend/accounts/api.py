@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from collections import Counter
 
 from django.core.files.base import ContentFile
@@ -23,6 +24,7 @@ from .models import (
     SocialLink,
     VerificationRequest,
 )
+from .providers import get_provider
 from .services import extract_hashtags, process_profile_image
 
 router = Router(tags=["accounts"])
@@ -140,8 +142,8 @@ def _sync_social_links(profile: CreatorProfile, links: list[SocialLinkIn]) -> No
         existing = profile.social_links.filter(platform=link.platform).first()
         if existing is None:
             existing = SocialLink(profile=profile, platform=link.platform)
-        elif existing.handle != handle:
-            existing.verified_at = None
+        elif existing.handle.lower() != handle.lower():
+            existing.clear_verification()
         existing.handle = handle
         existing.follower_count = max(0, link.follower_count)
         existing.save()
@@ -379,8 +381,52 @@ class PhotoOut(Schema):
 class SocialLinkOut(Schema):
     platform: str
     handle: str
+    # Self-reported by the creator.
     follower_count: int
+    # What brands see: the latest synced number when there is one, else the self-reported one.
+    followers: int
+    source: str  # live | self_reported
+    approximate: bool = False
+    state: str  # verified | stale | unverified
     verified: bool
+    synced_at: datetime | None = None
+    verification_status: str | None = None  # pending | rejected | None
+    supports_oauth: bool = False
+
+
+def _latest_snapshot(link: SocialLink):
+    # Works with prefetch_related("social_links__snapshots") — no extra query.
+    return max(link.snapshots.all(), key=lambda s: s.captured_at, default=None)
+
+
+def _channel_stats(link: SocialLink) -> dict:
+    """Shared by the profile and deck views: number + provenance + state."""
+    snap = _latest_snapshot(link)
+    live = snap is not None and snap.followers is not None
+    provider = get_provider(link.platform)
+    return {
+        "platform": link.platform,
+        "followers": snap.followers if live else link.follower_count,
+        "source": "live" if live else "self_reported",
+        "approximate": live and provider.approximate_counts,
+        "state": link.state,
+        "verified": link.is_verified,
+        "synced_at": snap.captured_at if live else None,
+    }
+
+
+def _social_link_out(link: SocialLink) -> SocialLinkOut:
+    latest_request = max(link.verification_requests.all(), key=lambda v: v.created_at, default=None)
+    status = None
+    if latest_request and latest_request.status != VerificationRequest.Status.APPROVED:
+        status = latest_request.status
+    return SocialLinkOut(
+        **_channel_stats(link),
+        handle=link.handle,
+        follower_count=link.follower_count,
+        verification_status=status,
+        supports_oauth=get_provider(link.platform).supports_oauth,
+    )
 
 
 class PortfolioOut(Schema):
@@ -409,7 +455,6 @@ class MyProfileOut(Schema):
     bio_tags: list[str] = []
     listed: bool
     verified: bool
-    verification_status: str | None = None
     niches: list[NicheOut]
     social_links: list[SocialLinkOut]
     photo: PhotoOut | None = None
@@ -417,7 +462,6 @@ class MyProfileOut(Schema):
 
 
 def _my_profile(profile: CreatorProfile) -> MyProfileOut:
-    latest_verification = profile.verification_requests.order_by("-created_at").first()
     return MyProfileOut(
         display_name=profile.display_name,
         city=profile.city_name,
@@ -426,16 +470,10 @@ def _my_profile(profile: CreatorProfile) -> MyProfileOut:
         bio_tags=profile.bio_tags,
         listed=profile.listed,
         verified=profile.verified,
-        verification_status=latest_verification.status if latest_verification else None,
         niches=[_niche_out(t) for t in profile.niches.all() if t.status != NicheTag.Status.REJECTED],
         social_links=[
-            SocialLinkOut(
-                platform=s.platform,
-                handle=s.handle,
-                follower_count=s.follower_count,
-                verified=s.verified_at is not None,
-            )
-            for s in profile.social_links.all()
+            _social_link_out(s)
+            for s in profile.social_links.prefetch_related("snapshots", "verification_requests")
         ],
         photo=next((PhotoOut(id=p.id, url=p.image.url) for p in profile.photos.all()), None),
         portfolio=[_portfolio_out(i) for i in profile.portfolio.all()],
@@ -598,13 +636,18 @@ def delete_photo(request, photo_id: int):
     return {"ok": True}
 
 
-@router.post("/me/verification", auth=django_auth)
-def request_verification(request, file: File[UploadedFile]):
+@router.post("/me/channels/{platform}/verification", auth=django_auth)
+def request_channel_verification(request, platform: str, file: File[UploadedFile]):
+    """Manual ownership proof: a screenshot of the channel's own analytics,
+    reviewed by staff. The only verification path until OAuth (Phase B)."""
     profile = _creator_or_403(request)
-    if profile.verified:
-        raise HttpError(409, "Already verified")
-    if profile.verification_requests.filter(status=VerificationRequest.Status.PENDING).exists():
-        raise HttpError(409, "A verification request is already pending")
+    link = profile.social_links.filter(platform=platform).first()
+    if link is None:
+        raise HttpError(404, "Channel not found — save it on your profile first")
+    if link.is_verified:
+        raise HttpError(409, "Channel already verified")
+    if link.verification_requests.filter(status=VerificationRequest.Status.PENDING).exists():
+        raise HttpError(409, "A verification request is already pending for this channel")
     if file.size > MAX_UPLOAD_BYTES:
         raise HttpError(413, "File too large")
     try:
@@ -612,6 +655,31 @@ def request_verification(request, file: File[UploadedFile]):
         evidence = process_profile_image(file, max_dimension=1600)
     except Exception:
         raise HttpError(422, "Not a valid image")
-    VerificationRequest.objects.create(creator=profile, evidence=evidence)
+    VerificationRequest.objects.create(creator=profile, channel=link, evidence=evidence)
     return {"status": "pending"}
+
+
+@router.post("/me/channels/{platform}/connect", auth=django_auth)
+def connect_channel(request, platform: str):
+    """Phase B entry point: returns the provider's OAuth URL once built."""
+    profile = _creator_or_403(request)
+    if not profile.social_links.filter(platform=platform).exists():
+        raise HttpError(404, "Channel not found")
+    provider = get_provider(platform)
+    if not provider.supports_oauth:
+        raise HttpError(501, f"Connecting {platform} is not available yet")
+    state = uuid.uuid4().hex
+    request.session[f"oauth_state:{platform}"] = state
+    return {"url": provider.get_authorization_url(state)}
+
+
+@router.get("/channels/{platform}/oauth/callback", auth=django_auth)
+def oauth_callback(request, platform: str, state: str = "", code: str = ""):
+    """Phase B skeleton with the state/CSRF check in place."""
+    expected = request.session.pop(f"oauth_state:{platform}", None)
+    if not state or state != expected:
+        raise HttpError(400, "Invalid OAuth state")
+    if not get_provider(platform).supports_oauth:
+        raise HttpError(501, f"Connecting {platform} is not available yet")
+    raise HttpError(501, "OAuth token exchange is not built yet")
 
