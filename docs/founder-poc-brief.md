@@ -33,7 +33,7 @@ Money moves in two places: the platform's tier fee runs through Mollie (currentl
 
 WHERE THE BUILD STANDS
 
-All of Phases 0–3a shipped over roughly twelve development sessions. The full monetized round-trip works end-to-end on production: brand signs up, creator profiles populate the pool, brand swipes, shortlists, creates a campaign, pays via Mollie, sends briefs, creator responds, proposal exchange bounded to three rounds, deal auto-created on acceptance, chat opens with contact details, both mark completion, both leave reviews. Verified-badge flow, admin panel, moderation queues, and rendered weekly digests all functional.
+All of Phases 0–3a shipped over roughly twelve development sessions. The full monetized round-trip works end-to-end on production: brand signs up, creator profiles populate the pool, brand swipes, shortlists, creates a campaign, pays via Mollie, sends briefs, creator responds, proposal exchange alternates until accepted or declined, deal auto-created on acceptance, chat opens with contact details, both mark completion, both leave reviews. Verified-badge flow, admin panel, moderation queues, and rendered weekly digests all functional.
 
 THE ONE HONEST SENTENCE
 The engineering is at "ready for private beta today." What sits between here and a public launch is legal drafting, brand identity, and cold-start seeding — not code.
@@ -80,7 +80,7 @@ Creators pay nothing. No listing fee, no commission in MVP. The platform monetis
 PRODUCT PRIMITIVES
 
 Silent shortlisting. Brands save creators privately. Creators only see aggregate counters — "3 brands saved you this week" — never identities. Protects the creator inbox; preserves the "brands must pay to reach out" incentive.
-Bounded negotiation. Maximum three proposals per brief: creator initial, brand counter, creator final counter, brand accepts or declines. Not eBay. It's how real business exchanges work.
+Open negotiation. The creator opens with a price, then the sides alternate counter-proposals with no cap on rounds; a negotiation ends only when one side accepts or declines. (Originally bounded to three proposals; the cap was dropped in September 2026 because it forced an accept-or-decline when both parties were close.)
 Chat opens only after acceptance. No pre-brief messaging, ever. Two reasons that both matter: creators don't get spammed, and the "pay to send a brief" pricing wouldn't survive free DMs.
 ANTI-CIRCUMVENTION
 Twelve-month non-circumvention clause in ToS: after being matched, parties can't work together off-platform. Bypass fee 4.999 kr ex VAT per violation. Detection is passive — internal signals from the platform's own data, not web crawlers. Crawlers are wrong for MVP: false-positive dominated, GDPR-exposed, and poor ROI. The real long-term lever is offering in-platform payments as a service in v2 — invoicing, receipts, VAT handling — that people want to use.
