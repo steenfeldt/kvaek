@@ -265,3 +265,23 @@ def test_portfolio_reorder(client, db):
     # Must name every item exactly once.
     assert client.put("/api/me/portfolio/order", {"ids": [a.id, b.id]}, content_type="application/json").status_code == 422
     assert client.put("/api/me/portfolio/order", {"ids": [a.id, b.id, c.id, 999]}, content_type="application/json").status_code == 422
+
+
+def test_at_least_one_channel_required(client, db):
+    from accounts.models import SocialLink
+
+    user = User.objects.create_user("nochan@example.com")
+    client.force_login(user)
+    base = {"display_name": "Ingen", "accept_terms": True, "social_links": []}
+    assert client.post("/api/onboarding/creator", base, content_type="application/json").status_code == 422
+    assert not CreatorProfile.objects.filter(user=user).exists()
+    base["social_links"] = [{"platform": "instagram", "handle": "ok", "follower_count": 1}]
+    assert client.post("/api/onboarding/creator", base, content_type="application/json").status_code == 200
+
+    res = client.patch("/api/me/profile", {"social_links": []}, content_type="application/json")
+    assert res.status_code == 422
+    res = client.patch(
+        "/api/me/profile", {"social_links": [{"platform": "instagram", "handle": "  "}]}, content_type="application/json"
+    )
+    assert res.status_code == 422
+    assert SocialLink.objects.filter(profile__user=user).count() == 1

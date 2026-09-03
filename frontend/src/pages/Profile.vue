@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import Sortable from "sortablejs";
-import { onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import BioEditor from "../components/BioEditor.vue";
 import ChannelEditor from "../components/ChannelEditor.vue";
 import CityPicker from "../components/CityPicker.vue";
@@ -43,6 +43,7 @@ const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => ap
 const form = ref({ display_name: "", city: null as CityOption | null, bio: "", niches: [] as string[] });
 // Channels are saved together with the rest of the form.
 const channels = ref<Channel[]>([]);
+const hasChannel = computed(() => channels.value.some((c) => c.handle.trim()));
 watch(
   profile,
   (p) => {
@@ -301,11 +302,11 @@ function onEvidence(event: Event) {
           <template #hint><FieldHint :text="$t('onboarding.nichesHint')" /></template>
           <NichePicker v-model="form.niches" />
         </UFormField>
-        <UFormField :label="$t('profile.channels')">
+        <UFormField :label="$t('profile.channels')" required>
           <template #hint><FieldHint :text="$t('channels.hint')" /></template>
           <ChannelEditor v-model="channels" />
         </UFormField>
-        <UButton type="submit" :loading="saveMutation.isPending.value" block>
+        <UButton type="submit" :loading="saveMutation.isPending.value" block :disabled="!hasChannel">
           {{ $t("profile.save") }}
         </UButton>
       </form>

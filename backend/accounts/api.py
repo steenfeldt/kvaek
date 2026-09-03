@@ -129,7 +129,8 @@ def _require_no_profile(user):
 def _sync_social_links(profile: CreatorProfile, links: list[SocialLinkIn]) -> None:
     """Make the profile's channels match `links`: one per platform, an empty
     handle removes the channel. A changed handle drops any API-confirmed stats,
-    since they belonged to the old account."""
+    since they belonged to the old account. At least one channel must remain —
+    reach is the whole point of the card."""
     keep = []
     for link in links:
         handle = link.handle.strip().lstrip("@")
@@ -144,6 +145,8 @@ def _sync_social_links(profile: CreatorProfile, links: list[SocialLinkIn]) -> No
         existing.follower_count = max(0, link.follower_count)
         existing.save()
         keep.append(link.platform)
+    if not keep:
+        raise HttpError(422, "Add at least one channel")
     profile.social_links.exclude(platform__in=keep).delete()
 
 

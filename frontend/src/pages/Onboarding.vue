@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import BioEditor from "../components/BioEditor.vue";
@@ -26,6 +26,7 @@ const creator = ref({ display_name: "", bio: "" });
 const creatorCity = ref<CityOption | null>(null);
 const selectedNiches = ref<string[]>([]);
 const channels = ref<Channel[]>([]);
+const hasChannel = computed(() => channels.value.some((c) => c.handle.trim()));
 // Required profile photo; uploaded right after the profile exists.
 const photoFile = ref<File | null>(null);
 const photoPreview = ref("");
@@ -139,7 +140,7 @@ async function submit() {
         <template #hint><FieldHint :text="$t('onboarding.bioHint')" /></template>
         <BioEditor v-model="creator.bio" />
       </UFormField>
-      <UFormField :label="$t('profile.channels')">
+      <UFormField :label="$t('profile.channels')" required>
         <template #hint><FieldHint :text="$t('channels.hint')" /></template>
         <ChannelEditor v-model="channels" />
       </UFormField>
@@ -156,7 +157,7 @@ async function submit() {
           <RouterLink to="/privacy" target="_blank" class="underline">{{ $t("onboarding.privacyLink") }}</RouterLink>
         </span>
       </label>
-      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms || !photoFile">
+      <UButton type="submit" :loading="busy" size="xl" block :disabled="!acceptTerms || !photoFile || !hasChannel">
         {{ $t("onboarding.submit") }}
       </UButton>
     </form>
