@@ -49,7 +49,7 @@ export default defineConfig({
       },
       workbox: {
         // Never let the SPA fallback or cache swallow server routes.
-        navigateFallbackDenylist: [/^\/api/, /^\/_allauth/, /^\/admin/, /^\/staff/, /^\/media/, /^\/static/],
+        navigateFallbackDenylist: [/^\/api/, /^\/_allauth/, /^\/accounts/, /^\/admin/, /^\/staff/, /^\/media/, /^\/static/],
         globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
       },
     }),
