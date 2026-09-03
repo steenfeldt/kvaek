@@ -154,8 +154,11 @@
   },
   "profile": {
     "title": "Din profil",
-    "photos": "Billeder",
-    "addPhoto": "Tilføj billede",
+    "photo": "Profilbillede",
+    "photoHint": "Det billede, brands ser først i kortbunken. Brug et tydeligt billede af dig selv.",
+    "addPhoto": "Vælg billede",
+    "replacePhoto": "Skift billede",
+    "removePhoto": "Fjern billede",
     "save": "Gem ændringer",
     "saved": "Gemt",
     "channels": "Dine kanaler",
@@ -194,6 +197,18 @@
     "step3d": "Du bestemmer selv din pris i forhandlingen. Ingen kommission.",
     "cta": "Opret creator-profil",
     "brandInstead": "Er du en virksomhed? Se hvordan det virker for jer"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "hint": "Vis brands, hvad du har lavet før: ét billede eller én video pr. opgave plus en kort tekst om opgaven og resultatet. Op til 12 opgaver.",
+    "addJob": "Tilføj opgave",
+    "media": "Billede eller video (MP4/WebM, maks 50 MB)",
+    "itemTitle": "Titel",
+    "description": "Om opgaven",
+    "descriptionPlaceholder": "Hvad var opgaven, for hvem, og hvad kom der ud af det?",
+    "add": "Gem opgave",
+    "cancel": "Annullér",
+    "remove": "Fjern opgave"
   },
   "channels": {
     "add": "Tilføj kanal",

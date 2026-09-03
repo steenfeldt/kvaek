@@ -153,9 +153,7 @@ class Command(BaseCommand):
                     profile=profile, platform=SocialLink.Platform.TIKTOK, handle=handle, follower_count=_followers()
                 )
 
-            for i in range(random.randint(1, 3)):
-                raw = _photo(created * 3 + i, name)
-                profile.photos.create(image=process_profile_image(raw), sort_order=i)
+            profile.photos.create(image=process_profile_image(_photo(created, name)))
 
             created += 1
             self.stdout.write(f"  + {name} ({city}, {', '.join(sorted(niches))})")

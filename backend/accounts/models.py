@@ -152,6 +152,31 @@ class ProfilePhoto(models.Model):
         ordering = ["sort_order", "id"]
 
 
+class PortfolioItem(models.Model):
+    """A past job the creator shows brands: one image or video plus text.
+    Deliberately no link field — links carry handles (anti-circumvention)."""
+
+    MAX_PER_PROFILE = 12
+
+    class MediaType(models.TextChoices):
+        IMAGE = "image", "Image"
+        VIDEO = "video", "Video"
+
+    profile = models.ForeignKey(CreatorProfile, on_delete=models.CASCADE, related_name="portfolio")
+    media = models.FileField(upload_to="portfolio/%Y/%m/")
+    media_type = models.CharField(max_length=5, choices=MediaType.choices)
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.title
+
+
 class BrandProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="brand_profile")
     company_name = models.CharField(max_length=200)

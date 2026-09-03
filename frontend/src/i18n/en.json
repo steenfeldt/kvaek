@@ -154,8 +154,11 @@
   },
   "profile": {
     "title": "Your profile",
-    "photos": "Photos",
-    "addPhoto": "Add photo",
+    "photo": "Profile photo",
+    "photoHint": "The photo brands see first in the deck. Use a clear picture of yourself.",
+    "addPhoto": "Choose photo",
+    "replacePhoto": "Replace photo",
+    "removePhoto": "Remove photo",
     "save": "Save changes",
     "channels": "Your channels",
     "followers": "Followers",
@@ -194,6 +197,18 @@
     "step3d": "You set your own price in the negotiation. No commission.",
     "cta": "Create creator profile",
     "brandInstead": "Are you a business? See how it works for you"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "hint": "Show brands what you've done before: one image or video per job plus a short note on the brief and the result. Up to 12 jobs.",
+    "addJob": "Add job",
+    "media": "Image or video (MP4/WebM, max 50 MB)",
+    "itemTitle": "Title",
+    "description": "About the job",
+    "descriptionPlaceholder": "What was the brief, for whom, and what came out of it?",
+    "add": "Save job",
+    "cancel": "Cancel",
+    "remove": "Remove job"
   },
   "channels": {
     "add": "Add channel",

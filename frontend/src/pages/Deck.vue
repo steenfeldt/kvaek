@@ -12,6 +12,13 @@ interface Social {
   follower_count: number;
   verified: boolean;
 }
+interface PortfolioItem {
+  id: number;
+  media_type: "image" | "video";
+  url: string;
+  title: string;
+  description: string;
+}
 interface Card {
   id: number;
   display_name: string;
@@ -19,9 +26,13 @@ interface Card {
   bio: string;
   niches: string[];
   verified: boolean;
-  photos: string[];
+  photo: string | null;
+  portfolio: PortfolioItem[];
   socials: Social[];
 }
+
+// Portfolio item opened in a modal from the card's thumbnail strip.
+const openItem = ref<PortfolioItem | null>(null);
 
 const queryClient = useQueryClient();
 // Optional hashtag filter (bare tag, no '#'); each tag has its own deck.
@@ -128,7 +139,7 @@ function swipe(direction: "like" | "pass") {
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
       >
-        <img v-if="top.photos[0]" :src="top.photos[0]" class="aspect-square w-full object-cover" alt="" draggable="false" />
+        <img v-if="top.photo" :src="top.photo" class="aspect-square w-full object-cover" alt="" draggable="false" />
         <div v-else class="flex aspect-square w-full items-center justify-center bg-clay-100 text-6xl">📷</div>
         <div class="flex flex-col gap-2 p-5">
           <h2 class="flex items-center gap-1 text-xl font-semibold">
@@ -141,6 +152,21 @@ function swipe(direction: "like" | "pass") {
           <p class="text-sm text-ink-600"><HashtagText :text="top.bio" /></p>
           <div class="flex flex-wrap gap-2">
             <UBadge v-for="n in top.niches" :key="n" color="primary" variant="subtle" size="sm">{{ n }}</UBadge>
+          </div>
+          <div v-if="top.portfolio.length" class="flex gap-2 overflow-x-auto py-1">
+            <button
+              v-for="item in top.portfolio"
+              :key="item.id"
+              type="button"
+              class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-clay-100"
+              :title="item.title"
+              @pointerdown.stop
+              @click.stop="openItem = item"
+            >
+              <video v-if="item.media_type === 'video'" :src="item.url" class="h-full w-full object-cover" muted preload="metadata" />
+              <img v-else :src="item.url" class="h-full w-full object-cover" alt="" draggable="false" />
+              <UIcon v-if="item.media_type === 'video'" name="i-lucide-play" class="absolute inset-0 m-auto size-6 text-white drop-shadow" />
+            </button>
           </div>
           <div class="flex gap-4 text-sm text-ink-600">
             <span v-for="s in top.socials" :key="s.platform" class="flex items-center gap-1">
@@ -168,6 +194,16 @@ function swipe(direction: "like" | "pass") {
         <p class="text-center text-ink-600">{{ tag ? $t("deck.emptyTag", { tag }) : $t("deck.empty") }}</p>
       </div>
     </div>
+
+    <UModal :open="!!openItem" :title="openItem?.title" @update:open="(v) => !v && (openItem = null)">
+      <template #body>
+        <template v-if="openItem">
+          <video v-if="openItem.media_type === 'video'" :src="openItem.url" class="w-full rounded-lg bg-black" controls autoplay playsinline />
+          <img v-else :src="openItem.url" class="w-full rounded-lg" alt="" />
+          <p v-if="openItem.description" class="mt-3 text-sm whitespace-pre-line text-ink-600">{{ openItem.description }}</p>
+        </template>
+      </template>
+    </UModal>
 
     <div v-if="top" class="flex justify-center gap-4">
       <UButton variant="outline" color="neutral" size="xl" class="rounded-full px-8" @click="swipe('pass')">

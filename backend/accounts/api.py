@@ -1,10 +1,13 @@
+import uuid
 from collections import Counter
+
+from django.core.files.base import ContentFile
 
 from django.db import transaction
 from django.db.models import Case, Count, IntegerField, Value, When
 from django.db.models.functions import Length
 from django.utils import timezone
-from ninja import File, Router, Schema, UploadedFile
+from ninja import File, Form, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
@@ -14,6 +17,7 @@ from .models import (
     City,
     CreatorProfile,
     NicheTag,
+    PortfolioItem,
     ProfilePhoto,
     SocialLink,
     VerificationRequest,
@@ -328,6 +332,24 @@ class SocialLinkOut(Schema):
     verified: bool
 
 
+class PortfolioOut(Schema):
+    id: int
+    media_type: str
+    url: str
+    title: str
+    description: str
+
+
+def _portfolio_out(item: PortfolioItem) -> PortfolioOut:
+    return PortfolioOut(
+        id=item.id,
+        media_type=item.media_type,
+        url=item.media.url,
+        title=item.title,
+        description=item.description,
+    )
+
+
 class MyProfileOut(Schema):
     display_name: str
     city: str
@@ -339,7 +361,8 @@ class MyProfileOut(Schema):
     verification_status: str | None = None
     niches: list[NicheOut]
     social_links: list[SocialLinkOut]
-    photos: list[PhotoOut]
+    photo: PhotoOut | None = None
+    portfolio: list[PortfolioOut]
 
 
 def _my_profile(profile: CreatorProfile) -> MyProfileOut:
@@ -363,7 +386,8 @@ def _my_profile(profile: CreatorProfile) -> MyProfileOut:
             )
             for s in profile.social_links.all()
         ],
-        photos=[PhotoOut(id=p.id, url=p.image.url) for p in profile.photos.all()],
+        photo=next((PhotoOut(id=p.id, url=p.image.url) for p in profile.photos.all()), None),
+        portfolio=[_portfolio_out(i) for i in profile.portfolio.all()],
     )
 
 
@@ -402,25 +426,96 @@ def update_profile(request, payload: ProfileUpdateIn):
     return _my_profile(profile)
 
 
-MAX_PHOTOS = 6
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+MAX_VIDEO_BYTES = 50 * 1024 * 1024
+VIDEO_TYPES = {"mp4": "video/mp4", "webm": "video/webm", "mov": "video/quicktime"}
 
 
 @router.post("/me/photos", response=PhotoOut, auth=django_auth)
+@transaction.atomic
 def upload_photo(request, file: File[UploadedFile]):
+    """One profile photo: uploading again replaces the current one."""
     profile = _creator_or_403(request)
-    if profile.photos.count() >= MAX_PHOTOS:
-        raise HttpError(409, f"Maximum {MAX_PHOTOS} photos")
     if file.size > MAX_UPLOAD_BYTES:
         raise HttpError(413, "File too large")
     try:
         image = process_profile_image(file)
     except Exception:
         raise HttpError(422, "Not a valid image")
-    photo = ProfilePhoto.objects.create(
-        profile=profile, image=image, sort_order=profile.photos.count()
-    )
+    for old in profile.photos.all():
+        old.image.delete(save=False)
+        old.delete()
+    photo = ProfilePhoto.objects.create(profile=profile, image=image)
     return PhotoOut(id=photo.id, url=photo.image.url)
+
+
+@router.post("/me/portfolio", response=PortfolioOut, auth=django_auth)
+def add_portfolio_item(
+    request, file: File[UploadedFile], title: str = Form(...), description: str = Form("")
+):
+    profile = _creator_or_403(request)
+    if profile.portfolio.count() >= PortfolioItem.MAX_PER_PROFILE:
+        raise HttpError(409, f"Maximum {PortfolioItem.MAX_PER_PROFILE} portfolio items")
+    title = title.strip()
+    if not title:
+        raise HttpError(422, "Title is required")
+    ext = (file.name or "").rsplit(".", 1)[-1].lower()
+    if ext in VIDEO_TYPES or (file.content_type or "").startswith("video/"):
+        if ext not in VIDEO_TYPES:
+            raise HttpError(422, "Video must be MP4, WebM or MOV")
+        if file.size > MAX_VIDEO_BYTES:
+            raise HttpError(413, "Video too large (max 50 MB)")
+        media = ContentFile(file.read(), name=f"{uuid.uuid4().hex}.{ext}")
+        media_type = PortfolioItem.MediaType.VIDEO
+    else:
+        if file.size > MAX_UPLOAD_BYTES:
+            raise HttpError(413, "File too large")
+        try:
+            media = process_profile_image(file, max_dimension=1600)
+        except Exception:
+            raise HttpError(422, "Not a valid image or video")
+        media_type = PortfolioItem.MediaType.IMAGE
+    item = PortfolioItem.objects.create(
+        profile=profile,
+        media=media,
+        media_type=media_type,
+        title=title[:100],
+        description=description.strip(),
+        sort_order=profile.portfolio.count(),
+    )
+    return _portfolio_out(item)
+
+
+class PortfolioUpdateIn(Schema):
+    title: str | None = None
+    description: str | None = None
+
+
+@router.patch("/me/portfolio/{item_id}", response=PortfolioOut, auth=django_auth)
+def update_portfolio_item(request, item_id: int, payload: PortfolioUpdateIn):
+    profile = _creator_or_403(request)
+    item = profile.portfolio.filter(id=item_id).first()
+    if item is None:
+        raise HttpError(404, "Portfolio item not found")
+    if payload.title is not None:
+        if not payload.title.strip():
+            raise HttpError(422, "Title is required")
+        item.title = payload.title.strip()[:100]
+    if payload.description is not None:
+        item.description = payload.description.strip()
+    item.save()
+    return _portfolio_out(item)
+
+
+@router.delete("/me/portfolio/{item_id}", auth=django_auth)
+def delete_portfolio_item(request, item_id: int):
+    profile = _creator_or_403(request)
+    item = profile.portfolio.filter(id=item_id).first()
+    if item is None:
+        raise HttpError(404, "Portfolio item not found")
+    item.media.delete(save=False)
+    item.delete()
+    return {"ok": True}
 
 
 @router.delete("/me/photos/{photo_id}", auth=django_auth)

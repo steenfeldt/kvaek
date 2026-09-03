@@ -189,3 +189,56 @@ def test_bio_hashtags_extracted_and_suggested(client, db):
     CreatorProfile.objects.create(user=other, display_name="Tag2", listed=True, bio_tags=["aarhus", "løb"])
     assert client.get("/api/hashtags", {"q": "a"}).json() == [{"tag": "aarhus", "count": 2}]
     assert [h["tag"] for h in client.get("/api/hashtags").json()] == ["aarhus", "løb", "vegansk"]
+
+
+def _png() -> bytes:
+    from io import BytesIO
+
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (40, 40), "red").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_single_profile_photo_and_portfolio(client, db):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from accounts.models import PortfolioItem
+
+    user = User.objects.create_user("folio@example.com")
+    profile = CreatorProfile.objects.create(user=user, display_name="Folio")
+    client.force_login(user)
+
+    # Uploading a second profile photo replaces the first.
+    first = client.post("/api/me/photos", {"file": SimpleUploadedFile("a.png", _png(), "image/png")}).json()
+    second = client.post("/api/me/photos", {"file": SimpleUploadedFile("b.png", _png(), "image/png")}).json()
+    assert first["id"] != second["id"]
+    assert profile.photos.count() == 1
+    assert client.get("/api/me/profile").json()["photo"]["id"] == second["id"]
+
+    # Portfolio: image and video items with text; title required.
+    res = client.post(
+        "/api/me/portfolio",
+        {"file": SimpleUploadedFile("job.png", _png(), "image/png"), "title": "Kampagne for Kaffebar", "description": "3 reels"},
+    )
+    assert res.status_code == 200 and res.json()["media_type"] == "image"
+    res = client.post(
+        "/api/me/portfolio",
+        {"file": SimpleUploadedFile("clip.mp4", b"\x00" * 100, "video/mp4"), "title": "Reel"},
+    )
+    assert res.status_code == 200 and res.json()["media_type"] == "video" and res.json()["url"].endswith(".mp4")
+    assert client.post(
+        "/api/me/portfolio", {"file": SimpleUploadedFile("x.png", _png(), "image/png"), "title": "  "}
+    ).status_code == 422
+    assert client.post(
+        "/api/me/portfolio", {"file": SimpleUploadedFile("x.avi", b"\x00", "video/x-msvideo"), "title": "Nope"}
+    ).status_code == 422
+
+    items = client.get("/api/me/profile").json()["portfolio"]
+    assert [i["title"] for i in items] == ["Kampagne for Kaffebar", "Reel"]
+    item_id = items[0]["id"]
+    res = client.patch(f"/api/me/portfolio/{item_id}", {"description": "5 reels"}, content_type="application/json")
+    assert res.json()["description"] == "5 reels"
+    assert client.delete(f"/api/me/portfolio/{item_id}").status_code == 200
+    assert PortfolioItem.objects.filter(profile=profile).count() == 1

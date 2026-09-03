@@ -34,12 +34,17 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
   return res.json();
 }
 
-/** Multipart upload (photos) — browser sets the Content-Type boundary itself. */
-export async function apiUpload<T = unknown>(path: string, file: globalThis.File): Promise<T> {
+/** Multipart upload (photos, portfolio media) — browser sets the Content-Type boundary itself. */
+export async function apiUpload<T = unknown>(
+  path: string,
+  file: globalThis.File,
+  fields: Record<string, string> = {},
+): Promise<T> {
   await ensureCsrf();
   const token = getCookie("csrftoken");
   const form = new FormData();
   form.append("file", file);
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
   const res = await fetch(`/api${path}`, {
     method: "POST",
     credentials: "same-origin",

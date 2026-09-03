@@ -14,6 +14,13 @@ interface Photo {
   id: number;
   url: string;
 }
+interface PortfolioItem {
+  id: number;
+  media_type: "image" | "video";
+  url: string;
+  title: string;
+  description: string;
+}
 interface Profile {
   display_name: string;
   city: string;
@@ -24,7 +31,8 @@ interface Profile {
   verification_status: string | null;
   niches: { name: string; slug: string }[];
   social_links: { platform: string; handle: string; follower_count: number; verified: boolean }[];
-  photos: Photo[];
+  photo: Photo | null;
+  portfolio: PortfolioItem[];
 }
 
 const queryClient = useQueryClient();
@@ -86,6 +94,35 @@ const deleteMutation = useMutation({
   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
 });
 
+// --- portfolio: past jobs, one image/video + text each ---
+const MAX_PORTFOLIO = 12;
+const addingItem = ref(false);
+const newItem = ref({ title: "", description: "", file: null as File | null });
+const itemFileInput = ref<HTMLInputElement | null>(null);
+
+function onItemFile(event: Event) {
+  newItem.value.file = (event.target as HTMLInputElement).files?.[0] ?? null;
+}
+
+const addItemMutation = useMutation({
+  mutationFn: () =>
+    apiUpload<PortfolioItem>("/me/portfolio", newItem.value.file as File, {
+      title: newItem.value.title,
+      description: newItem.value.description,
+    }),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    newItem.value = { title: "", description: "", file: null };
+    addingItem.value = false;
+  },
+  onError: (e) => toast.add({ title: (e as Error).message, color: "error" }),
+});
+
+const deleteItemMutation = useMutation({
+  mutationFn: (id: number) => api(`/me/portfolio/${id}`, { method: "DELETE" }),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
+});
+
 const evidenceInput = ref<HTMLInputElement | null>(null);
 
 const verifyMutation = useMutation({
@@ -114,27 +151,87 @@ function onEvidence(event: Event) {
     </header>
 
     <UCard>
-      <h2 class="mb-3 font-semibold">{{ $t("profile.photos") }}</h2>
-      <div class="grid grid-cols-3 gap-3">
-        <div v-for="p in profile.photos" :key="p.id" class="group relative aspect-square">
-          <img :src="p.url" class="h-full w-full rounded-xl object-cover" alt="" />
+      <h2 class="mb-1 font-semibold">{{ $t("profile.photo") }}</h2>
+      <p class="mb-3 text-sm text-ink-600">{{ $t("profile.photoHint") }}</p>
+      <div class="flex items-center gap-4">
+        <img v-if="profile.photo" :src="profile.photo.url" class="h-28 w-28 rounded-xl object-cover" alt="" />
+        <div v-else class="flex h-28 w-28 items-center justify-center rounded-xl bg-clay-100 text-3xl">📷</div>
+        <div class="flex flex-col gap-2">
+          <label>
+            <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFile" />
+            <UButton as="span" variant="outline" color="neutral" class="cursor-pointer bg-white" :loading="uploadMutation.isPending.value">
+              {{ profile.photo ? $t("profile.replacePhoto") : $t("profile.addPhoto") }}
+            </UButton>
+          </label>
+          <UButton
+            v-if="profile.photo"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            class="self-start"
+            @click="deleteMutation.mutate(profile.photo.id)"
+          >
+            {{ $t("profile.removePhoto") }}
+          </UButton>
+        </div>
+      </div>
+    </UCard>
+
+    <UCard>
+      <h2 class="mb-1 font-semibold">{{ $t("portfolio.title") }}</h2>
+      <p class="mb-4 text-sm text-ink-600">{{ $t("portfolio.hint") }}</p>
+      <ul v-if="profile.portfolio.length" class="mb-4 grid gap-3 sm:grid-cols-2">
+        <li v-for="item in profile.portfolio" :key="item.id" class="group relative overflow-hidden rounded-xl border border-clay-200">
+          <video v-if="item.media_type === 'video'" :src="item.url" class="aspect-video w-full bg-black object-cover" controls preload="metadata" />
+          <img v-else :src="item.url" class="aspect-video w-full object-cover" alt="" />
+          <div class="p-3">
+            <p class="font-medium">{{ item.title }}</p>
+            <p v-if="item.description" class="mt-1 text-sm whitespace-pre-line text-ink-600">{{ item.description }}</p>
+          </div>
           <UButton
             icon="i-lucide-x"
             color="neutral"
             size="xs"
-            class="absolute top-1 right-1 hidden group-hover:flex"
-            @click="deleteMutation.mutate(p.id)"
+            class="absolute top-2 right-2 bg-white/90"
+            :aria-label="$t('portfolio.remove')"
+            @click="deleteItemMutation.mutate(item.id)"
           />
+        </li>
+      </ul>
+      <form v-if="addingItem" class="flex flex-col gap-3 rounded-xl bg-cream p-4" @submit.prevent="addItemMutation.mutate()">
+        <UFormField :label="$t('portfolio.media')" required>
+          <input
+            ref="itemFileInput"
+            type="file"
+            accept="image/*,video/mp4,video/webm,video/quicktime"
+            required
+            class="block w-full text-sm"
+            @change="onItemFile"
+          />
+        </UFormField>
+        <UFormField :label="$t('portfolio.itemTitle')" required>
+          <UInput v-model="newItem.title" required maxlength="100" class="w-full" />
+        </UFormField>
+        <UFormField :label="$t('portfolio.description')">
+          <UTextarea v-model="newItem.description" :rows="3" class="w-full" :placeholder="$t('portfolio.descriptionPlaceholder')" />
+        </UFormField>
+        <div class="flex gap-2">
+          <UButton type="submit" :loading="addItemMutation.isPending.value" :disabled="!newItem.file || !newItem.title.trim()">
+            {{ $t("portfolio.add") }}
+          </UButton>
+          <UButton variant="ghost" color="neutral" @click="addingItem = false">{{ $t("portfolio.cancel") }}</UButton>
         </div>
-        <label
-          v-if="profile.photos.length < 6"
-          class="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-clay-200 text-ink-600 hover:border-sage-500"
-        >
-          <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFile" />
-          <span v-if="uploadMutation.isPending.value">…</span>
-          <span v-else>+ {{ $t("profile.addPhoto") }}</span>
-        </label>
-      </div>
+      </form>
+      <UButton
+        v-else-if="profile.portfolio.length < MAX_PORTFOLIO"
+        icon="i-lucide-plus"
+        variant="outline"
+        color="neutral"
+        class="bg-white"
+        @click="addingItem = true"
+      >
+        {{ $t("portfolio.addJob") }}
+      </UButton>
     </UCard>
 
     <UCard>

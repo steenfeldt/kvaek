@@ -28,6 +28,14 @@ class SocialOut(Schema):
     verified: bool
 
 
+class PortfolioOut(Schema):
+    id: int
+    media_type: str
+    url: str
+    title: str
+    description: str
+
+
 class DeckCardOut(Schema):
     id: int
     display_name: str
@@ -35,7 +43,8 @@ class DeckCardOut(Schema):
     bio: str
     niches: list[str]
     verified: bool
-    photos: list[str]
+    photo: str | None = None
+    portfolio: list[PortfolioOut]
     socials: list[SocialOut]
 
 
@@ -48,7 +57,13 @@ def _card(profile: CreatorProfile) -> DeckCardOut:
         bio=profile.bio,
         niches=[t.name for t in profile.niches.all()],
         verified=profile.verified,
-        photos=[p.image.url for p in profile.photos.all()],
+        photo=next((p.image.url for p in profile.photos.all()), None),
+        portfolio=[
+            PortfolioOut(
+                id=i.id, media_type=i.media_type, url=i.media.url, title=i.title, description=i.description
+            )
+            for i in profile.portfolio.all()
+        ],
         socials=[
             SocialOut(
                 platform=s.platform,
@@ -72,7 +87,7 @@ def deck(request, tag: str = ""):
     tag = tag.strip().lstrip("#").lower()
     if tag:
         pool = pool.filter(bio_tags__contains=[tag])
-    profiles = pool.prefetch_related("niches", "photos", "social_links").order_by("?")[:DECK_SIZE]
+    profiles = pool.prefetch_related("niches", "photos", "portfolio", "social_links").order_by("?")[:DECK_SIZE]
     return [_card(p) for p in profiles]
 
 
@@ -119,7 +134,7 @@ def shortlist_detail(request, shortlist_id: int):
         raise HttpError(404, "Shortlist not found")
     profiles = CreatorProfile.objects.filter(
         shortlist_entries__shortlist=shortlist, listed=True
-    ).prefetch_related("niches", "photos", "social_links")
+    ).prefetch_related("niches", "photos", "portfolio", "social_links")
     return [_card(p) for p in profiles]
 
 

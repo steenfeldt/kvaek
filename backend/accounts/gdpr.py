@@ -27,6 +27,8 @@ def erase_user(user: User) -> str:
     if creator is not None:
         for photo in creator.photos.all():
             photo.image.delete(save=False)
+        for item in creator.portfolio.all():
+            item.media.delete(save=False)
         for vr in creator.verification_requests.all():
             vr.evidence.delete(save=False)
         creator.delete()  # cascades photos, social links, briefs, deals, messages, reviews
@@ -88,6 +90,10 @@ def export_user_data(user: User) -> dict:
                 for s in creator.social_links.all()
             ],
             "photos": [p.image.name for p in creator.photos.all()],
+            "portfolio": [
+                {"title": i.title, "description": i.description, "media": i.media.name}
+                for i in creator.portfolio.all()
+            ],
             "verification_requests": [
                 {"status": v.status, "created_at": v.created_at.isoformat()}
                 for v in creator.verification_requests.all()
