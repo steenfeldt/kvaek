@@ -73,14 +73,16 @@ def test_negotiation_happy_path(brief):
     assert brief.status == Brief.Status.ACCEPTED
 
 
-def test_negotiation_full_three_rounds(brief):
+def test_negotiation_alternates_without_round_cap(brief):
     services.submit_proposal(brief, Proposal.Author.CREATOR, 200_000)
     services.submit_proposal(brief, Proposal.Author.BRAND, 120_000)
     services.submit_proposal(brief, Proposal.Author.CREATOR, 150_000)
-    with pytest.raises(DomainError, match="three"):
-        services.submit_proposal(brief, Proposal.Author.BRAND, 140_000)
+    services.submit_proposal(brief, Proposal.Author.BRAND, 140_000)
+    fifth = services.submit_proposal(brief, Proposal.Author.CREATOR, 145_000)
+    assert fifth.round == 5
+    assert brief.proposals.filter(status=Proposal.Status.OPEN).count() == 1
     deal = services.accept_proposal(brief, Proposal.Author.BRAND)
-    assert deal.agreed_amount_ore == 150_000
+    assert deal.agreed_amount_ore == 145_000
 
 
 def test_round_authorship_enforced(brief):

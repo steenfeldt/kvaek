@@ -119,7 +119,7 @@
   },
   "brief": {
     "negotiation": "Negotiation",
-    "round": "Round {round} of 3",
+    "round": "Round {round}",
     "amountKr": "Amount (kr)",
     "proposalMessage": "Message / terms",
     "submitProposal": "Send proposal",
@@ -174,7 +174,7 @@
     "step2t": "Create a campaign",
     "step2d": "Pay per campaign — no subscription, no lock-in.",
     "step3t": "Send briefs and close the deal",
-    "step3d": "Negotiate the price in up to three rounds, and chat once the deal is made.",
+    "step3d": "Negotiate the price back and forth, and chat once the deal is made.",
     "pricing": "Pricing",
     "vat": "All prices excl. VAT.",
     "cta": "Create business account",
@@ -250,7 +250,11 @@
     "ctaNotListedBody": "Profiles with a photo, social links and niches enter the pool where brands swipe.",
     "seeBriefs": "See briefs",
     "seeProfile": "View your profile",
-    "completeProfile": "Complete profile"
+    "completeProfile": "Complete profile",
+    "hiddenTitle": "Your profile isn't visible to brands yet",
+    "hiddenBody": "Brands can only find you once your profile has at least one photo, a channel and a niche. Then we review it and add it to the pool.",
+    "pendingTitle": "Your profile is being reviewed",
+    "pendingBody": "The profile is complete but not yet visible to brands. We review new profiles manually, and you'll appear in the pool as soon as it's approved."
   },
   "kvaekker": {
     "tease": "Need a break? Play Kvækker",

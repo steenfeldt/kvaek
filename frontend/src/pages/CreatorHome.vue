@@ -28,6 +28,18 @@ const gameOpen = ref(false);
 
 <template>
   <main class="mx-auto flex max-w-3xl flex-col gap-10 px-6 pt-12 pb-16">
+    <!-- Not in the pool yet: say so up front, and why. -->
+    <UAlert
+      v-if="data && !data.listed"
+      :color="data.profile_complete ? 'info' : 'warning'"
+      variant="outline"
+      class="bg-white"
+      icon="i-lucide-eye-off"
+      :title="data.profile_complete ? $t('creatorDash.pendingTitle') : $t('creatorDash.hiddenTitle')"
+      :description="data.profile_complete ? $t('creatorDash.pendingBody') : $t('creatorDash.hiddenBody')"
+      :actions="data.profile_complete ? [] : [{ label: $t('creatorDash.completeProfile'), to: '/profile', color: 'warning' }]"
+    />
+
     <header v-if="data">
       <p class="text-xs font-semibold uppercase tracking-widest text-clay-600">
         <span aria-hidden="true">●</span> {{ $t("dashboard.yourWeek") }} · {{ today }}
@@ -78,6 +90,15 @@ const gameOpen = ref(false);
         <p class="mt-2 max-w-md text-sm text-ink-600">{{ $t("creatorDash.ctaListedBody") }}</p>
         <div class="mt-5 flex flex-wrap gap-3">
           <UButton to="/briefs" size="lg">{{ $t("creatorDash.seeBriefs") }} →</UButton>
+          <UButton to="/profile" size="lg" variant="outline" color="neutral" class="bg-white">
+            {{ $t("creatorDash.seeProfile") }}
+          </UButton>
+        </div>
+      </template>
+      <template v-else-if="data.profile_complete">
+        <h2 class="mt-2 text-2xl font-semibold">{{ $t("creatorDash.pendingTitle") }}</h2>
+        <p class="mt-2 max-w-md text-sm text-ink-600">{{ $t("creatorDash.pendingBody") }}</p>
+        <div class="mt-5">
           <UButton to="/profile" size="lg" variant="outline" color="neutral" class="bg-white">
             {{ $t("creatorDash.seeProfile") }}
           </UButton>

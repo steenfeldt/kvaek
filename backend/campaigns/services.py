@@ -55,8 +55,13 @@ def decline_brief(brief: Brief) -> Brief:
     return brief
 
 
-# Bounded negotiation: round 1 creator, round 2 brand counter, round 3 creator final.
-ROUND_AUTHOR = {1: Proposal.Author.CREATOR, 2: Proposal.Author.BRAND, 3: Proposal.Author.CREATOR}
+def next_author(proposals) -> str:
+    """The creator opens with a price; after that the sides alternate, with no
+    cap on rounds — a negotiation ends only by acceptance or decline."""
+    last = max(proposals, key=lambda p: p.round, default=None)
+    if last is None or last.author == Proposal.Author.BRAND:
+        return Proposal.Author.CREATOR
+    return Proposal.Author.BRAND
 
 
 @transaction.atomic
@@ -64,11 +69,11 @@ def submit_proposal(brief: Brief, author: str, amount_ore: int, message: str = "
     brief = Brief.objects.select_for_update().get(pk=brief.pk)
     if brief.status not in (Brief.Status.SENT, Brief.Status.NEGOTIATING):
         raise DomainError(f"Cannot propose on a {brief.status} brief")
-    next_round = brief.proposals.count() + 1
-    if next_round > Proposal.MAX_ROUNDS:
-        raise DomainError("Negotiation is limited to three proposals")
-    if ROUND_AUTHOR[next_round] != author:
-        raise DomainError(f"Round {next_round} belongs to the {ROUND_AUTHOR[next_round]}")
+    proposals = list(brief.proposals.all())
+    next_round = len(proposals) + 1
+    expected = next_author(proposals)
+    if expected != author:
+        raise DomainError(f"Round {next_round} belongs to the {expected}")
     if amount_ore <= 0:
         raise DomainError("Amount must be positive")
     brief.proposals.filter(status=Proposal.Status.OPEN).update(status=Proposal.Status.SUPERSEDED)

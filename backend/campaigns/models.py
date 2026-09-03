@@ -63,8 +63,6 @@ class Brief(models.Model):
 
 
 class Proposal(models.Model):
-    MAX_ROUNDS = 3
-
     class Author(models.TextChoices):
         CREATOR = "creator", "Creator"
         BRAND = "brand", "Brand"
@@ -86,9 +84,6 @@ class Proposal(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["brief", "round"], name="one_proposal_per_round"),
-            models.CheckConstraint(
-                condition=models.Q(round__gte=1, round__lte=3), name="proposal_round_bounds"
-            ),
         ]
         ordering = ["round"]
 

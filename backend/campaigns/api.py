@@ -208,7 +208,7 @@ def _get_brief_for_user(request, brief_id: int) -> tuple[Brief, str]:
     raise HttpError(404, "Brief not found")
 
 
-from .services import ROUND_AUTHOR
+from .services import next_author
 
 
 class BriefDetailOut(BriefOut):
@@ -225,14 +225,13 @@ def brief_detail(request, brief_id: int):
     brief, side = _get_brief_for_user(request, brief_id)
     proposals = list(brief.proposals.all())
     negotiable = brief.status in (Brief.Status.SENT, Brief.Status.NEGOTIATING)
-    next_round = len(proposals) + 1
     open_proposal = next((p for p in proposals if p.status == Proposal.Status.OPEN), None)
     base = _brief_out(brief)
     return BriefDetailOut(
         **base.dict(),
         my_side=side,
         proposals=proposals,
-        can_propose=negotiable and next_round <= Proposal.MAX_ROUNDS and ROUND_AUTHOR[next_round] == side,
+        can_propose=negotiable and next_author(proposals) == side,
         can_accept=brief.status == Brief.Status.NEGOTIATING
         and open_proposal is not None
         and open_proposal.author != side,

@@ -119,7 +119,7 @@
   },
   "brief": {
     "negotiation": "Forhandling",
-    "round": "Runde {round} af 3",
+    "round": "Runde {round}",
     "amountKr": "Beløb (kr)",
     "proposalMessage": "Besked / vilkår",
     "submitProposal": "Send forslag",
@@ -174,7 +174,7 @@
     "step2t": "Opret en kampagne",
     "step2d": "Betal pr. kampagne — intet abonnement, ingen binding.",
     "step3t": "Send briefs og luk aftalen",
-    "step3d": "Forhandl prisen i op til tre runder, og chat når aftalen er på plads.",
+    "step3d": "Forhandl prisen frem og tilbage, og chat når aftalen er på plads.",
     "pricing": "Priser",
     "vat": "Alle priser er ekskl. moms.",
     "cta": "Opret virksomhedskonto",
@@ -250,7 +250,11 @@
     "ctaNotListedBody": "Profiler med foto, sociale links og nicher kommer i poolen, hvor brands swiper.",
     "seeBriefs": "Se briefs",
     "seeProfile": "Se din profil",
-    "completeProfile": "Udfyld profil"
+    "completeProfile": "Udfyld profil",
+    "hiddenTitle": "Din profil er ikke synlig for brands endnu",
+    "hiddenBody": "Brands kan først finde dig, når din profil har mindst ét billede, en kanal og en niche. Så gennemgår vi den og sætter den i poolen.",
+    "pendingTitle": "Din profil er ved at blive gennemgået",
+    "pendingBody": "Profilen er komplet, men endnu ikke synlig for brands. Vi gennemgår nye profiler manuelt, og du bliver synlig i poolen, så snart den er godkendt."
   },
   "kvaekker": {
     "tease": "Trænger du til en pause? Spil Kvækker",

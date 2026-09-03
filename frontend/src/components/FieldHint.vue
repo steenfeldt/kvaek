@@ -8,7 +8,11 @@ const open = ref(false);
 </script>
 
 <template>
-  <UTooltip v-model:open="open" :text="text" :delay-duration="0" :ui="{ content: 'max-w-xs h-auto py-2 whitespace-normal' }">
+  <UTooltip v-model:open="open" :delay-duration="0" :ui="{ content: 'h-auto max-w-72 px-3 py-2' }">
+    <!-- The default text slot truncates to one line; render our own so it wraps. -->
+    <template #content>
+      <span class="text-xs leading-snug whitespace-normal">{{ text }}</span>
+    </template>
     <button
       type="button"
       class="flex h-5 w-5 items-center justify-center rounded-full border border-ink-300 text-xs font-medium text-ink-600 hover:border-clay-500 hover:text-clay-700"
