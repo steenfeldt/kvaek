@@ -29,6 +29,8 @@ export interface ChannelStatus {
   state: "verified" | "stale" | "unverified";
   verification_status: "pending" | "rejected" | null;
   source: "live" | "self_reported";
+  followers: number;
+  approximate: boolean;
   synced_at: string | null;
   supports_oauth: boolean;
 }

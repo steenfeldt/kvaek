@@ -227,6 +227,7 @@
     "empty": "Ingen kanaler endnu. Tilføj mindst én, så brands kan se din rækkevidde.",
     "hint": "Tilføj de kanaler, du skaber indhold på, med brugernavn og cirka antal følgere. Brands ser kun platform og følgertal, ikke dit brugernavn, før I har en aftale. Ændrer du brugernavn, skal kanalen verificeres igen.",
     "verify": "Verificér",
+    "liveCount": "Hentet fra platformen: {count} følgere, opdateret {date}. Det er det tal, brands ser.",
     "verifyHint": "Verificér hver kanal med et screenshot af dens statistik (fx Instagram Insights eller TikTok Analytics), hvor dit brugernavn kan ses. Vi gennemgår det manuelt. Tal, der ikke er verificeret, vises til brands som selvrapporterede.",
     "verifySent": "Screenshot modtaget — vi gennemgår det snarest.",
     "verifiedBadge": "Ejerskab bekræftet",

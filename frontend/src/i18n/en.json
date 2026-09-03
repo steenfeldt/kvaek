@@ -227,6 +227,7 @@
     "empty": "No channels yet. Add at least one so brands can see your reach.",
     "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the channel must be verified again.",
     "verify": "Verify",
+    "liveCount": "Pulled from the platform: {count} followers, updated {date}. This is the number brands see.",
     "verifyHint": "Verify each channel with a screenshot of its analytics (e.g. Instagram Insights or TikTok Analytics) showing your username. We review it manually. Unverified numbers are shown to brands as self-reported.",
     "verifySent": "Screenshot received — we'll review it shortly.",
     "verifiedBadge": "Ownership verified",
