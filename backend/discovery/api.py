@@ -5,7 +5,7 @@ from ninja import Router, Schema
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
-from accounts.models import CreatorProfile
+from accounts.models import CreatorProfile, NicheTag
 
 from .models import Shortlist, ShortlistEntry, SwipeEvent
 
@@ -55,7 +55,8 @@ def _card(profile: CreatorProfile) -> DeckCardOut:
         display_name=profile.display_name,
         city=profile.city_name,
         bio=profile.bio,
-        niches=[t.name for t in profile.niches.all()],
+        # Only approved niches are public; a creator's pending suggestions stay private.
+        niches=[t.name for t in profile.niches.all() if t.status == NicheTag.Status.APPROVED],
         verified=profile.verified,
         photo=next((p.image.url for p in profile.photos.all()), None),
         portfolio=[

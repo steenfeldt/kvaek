@@ -285,3 +285,52 @@ def test_at_least_one_channel_required(client, db):
     )
     assert res.status_code == 422
     assert SocialLink.objects.filter(profile__user=user).count() == 1
+
+
+def test_niche_suggestions_need_approval(client, db):
+    from accounts.models import NicheTag
+
+    NicheTag.objects.create(name="Mad", slug="mad")
+    alice = User.objects.create_user("alice@example.com")
+    bob = User.objects.create_user("bob@example.com")
+    CreatorProfile.objects.create(user=alice, display_name="Alice", listed=True)
+    CreatorProfile.objects.create(user=bob, display_name="Bob", listed=True)
+
+    client.force_login(alice)
+    res = client.post("/api/niches/suggest", {"name": "  padel   tennis "}, content_type="application/json")
+    assert res.status_code == 200 and res.json() == {"name": "Padel tennis", "slug": "padel-tennis", "pending": True}
+    # Visible to Alice, hidden from Bob and the public.
+    assert [n["slug"] for n in client.get("/api/niches").json()] == ["mad", "padel-tennis"]
+    client.force_login(bob)
+    assert [n["slug"] for n in client.get("/api/niches").json()] == ["mad"]
+    client.logout()
+    assert [n["slug"] for n in client.get("/api/niches").json()] == ["mad"]
+
+    # Alice can attach it; Bob cannot, and Bob is told it's already suggested.
+    client.force_login(alice)
+    res = client.patch("/api/me/profile", {"niches": ["padel-tennis", "mad"]}, content_type="application/json")
+    assert sorted(n["slug"] for n in res.json()["niches"]) == ["mad", "padel-tennis"]
+    client.force_login(bob)
+    res = client.patch("/api/me/profile", {"niches": ["padel-tennis"]}, content_type="application/json")
+    assert res.json()["niches"] == []
+    assert client.post("/api/niches/suggest", {"name": "Padel tennis"}, content_type="application/json").status_code == 409
+
+    # The deck only shows approved niches for Alice until staff approve.
+    brand = User.objects.create_user("nb@example.com")
+    BrandProfile.objects.create(user=brand, company_name="N ApS", cvr="22222222")
+    client.force_login(brand)
+    alice_card = next(c for c in client.get("/api/deck").json() if c["display_name"] == "Alice")
+    assert alice_card["niches"] == ["Mad"]
+    tag = NicheTag.objects.get(slug="padel-tennis")
+    tag.status = NicheTag.Status.APPROVED
+    tag.save()
+    alice_card = next(c for c in client.get("/api/deck").json() if c["display_name"] == "Alice")
+    assert sorted(alice_card["niches"]) == ["Mad", "Padel tennis"]
+
+    # Pending cap and rejection.
+    client.force_login(alice)
+    for i in range(3):
+        assert client.post("/api/niches/suggest", {"name": f"Niche {i}"}, content_type="application/json").status_code == 200
+    assert client.post("/api/niches/suggest", {"name": "Niche 9"}, content_type="application/json").status_code == 409
+    NicheTag.objects.filter(slug="niche-0").update(status=NicheTag.Status.REJECTED)
+    assert client.post("/api/niches/suggest", {"name": "niche 0"}, content_type="application/json").status_code == 422

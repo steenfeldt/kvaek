@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.utils import timezone
 
 from .storage import private_storage
 
@@ -58,8 +59,23 @@ class User(AbstractUser):
 
 
 class NicheTag(models.Model):
+    """Niches are curated: creators may suggest new ones, which stay private to
+    the suggester until staff approve them."""
+
+    MAX_PENDING_PER_USER = 3
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.APPROVED)
+    suggested_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="suggested_niches"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name

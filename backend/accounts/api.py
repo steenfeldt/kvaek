@@ -4,9 +4,10 @@ from collections import Counter
 from django.core.files.base import ContentFile
 
 from django.db import transaction
-from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.db.models.functions import Length
 from django.utils import timezone
+from django.utils.text import slugify
 from ninja import File, Form, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 from ninja.security import django_auth
@@ -157,6 +158,13 @@ def _hashtags_or_422(bio: str) -> list[str]:
         raise HttpError(422, str(e))
 
 
+def _usable_niches(user):
+    """Approved niches, plus the user's own suggestions still under review."""
+    return NicheTag.objects.filter(
+        Q(status=NicheTag.Status.APPROVED) | Q(status=NicheTag.Status.PENDING, suggested_by=user)
+    )
+
+
 def _record_terms(user, accepted: bool):
     if not accepted:
         raise HttpError(422, "Terms must be accepted")
@@ -177,10 +185,7 @@ def onboard_creator(request, payload: CreatorOnboardingIn):
         bio=payload.bio.strip(),
         bio_tags=_hashtags_or_422(payload.bio),
     )
-    for slug in payload.niches:
-        tag = NicheTag.objects.filter(slug=slug).first()
-        if tag:
-            profile.niches.add(tag)
+    profile.niches.set(_usable_niches(request.user).filter(slug__in=payload.niches))
     _sync_social_links(profile, payload.social_links)
     return OnboardingOut(role="creator")
 
@@ -253,11 +258,54 @@ def update_brand(request, payload: BrandUpdateIn):
 class NicheOut(Schema):
     name: str
     slug: str
+    # True for the caller's own suggestions awaiting review (hidden from others).
+    pending: bool = False
+
+
+def _niche_out(tag: NicheTag) -> NicheOut:
+    return NicheOut(name=tag.name, slug=tag.slug, pending=tag.status == NicheTag.Status.PENDING)
 
 
 @router.get("/niches", response=list[NicheOut], auth=None)
 def niches(request):
-    return NicheTag.objects.all().order_by("name")
+    if request.user.is_authenticated:
+        qs = _usable_niches(request.user)
+    else:
+        qs = NicheTag.objects.filter(status=NicheTag.Status.APPROVED)
+    return [_niche_out(t) for t in qs.order_by("name")]
+
+
+class NicheSuggestIn(Schema):
+    name: str
+
+
+@router.post("/niches/suggest", response=NicheOut, auth=django_auth)
+def suggest_niche(request, payload: NicheSuggestIn):
+    """Propose a new niche. It is usable by the suggester right away but only
+    becomes public once staff approve it in admin."""
+    name = " ".join(payload.name.split())
+    if not 2 <= len(name) <= 50:
+        raise HttpError(422, "Niche name must be 2-50 characters")
+    name = name[0].upper() + name[1:]
+    slug = slugify(name)
+    if not slug:
+        raise HttpError(422, "Niche name must contain letters or digits")
+    existing = NicheTag.objects.filter(Q(slug=slug) | Q(name__iexact=name)).first()
+    if existing is not None:
+        if existing.status == NicheTag.Status.APPROVED:
+            return _niche_out(existing)
+        if existing.status == NicheTag.Status.PENDING and existing.suggested_by_id == request.user.id:
+            return _niche_out(existing)
+        if existing.status == NicheTag.Status.PENDING:
+            raise HttpError(409, "This niche has already been suggested and is awaiting review")
+        raise HttpError(422, "This niche was not accepted")
+    pending = NicheTag.objects.filter(status=NicheTag.Status.PENDING, suggested_by=request.user).count()
+    if pending >= NicheTag.MAX_PENDING_PER_USER:
+        raise HttpError(409, f"You already have {NicheTag.MAX_PENDING_PER_USER} niches awaiting review")
+    tag = NicheTag.objects.create(
+        name=name, slug=slug, status=NicheTag.Status.PENDING, suggested_by=request.user
+    )
+    return _niche_out(tag)
 
 
 class HashtagOut(Schema):
@@ -379,7 +427,7 @@ def _my_profile(profile: CreatorProfile) -> MyProfileOut:
         listed=profile.listed,
         verified=profile.verified,
         verification_status=latest_verification.status if latest_verification else None,
-        niches=[NicheOut(name=t.name, slug=t.slug) for t in profile.niches.all()],
+        niches=[_niche_out(t) for t in profile.niches.all() if t.status != NicheTag.Status.REJECTED],
         social_links=[
             SocialLinkOut(
                 platform=s.platform,
@@ -423,7 +471,7 @@ def update_profile(request, payload: ProfileUpdateIn):
         raise HttpError(422, "Name is required")
     profile.save()
     if payload.niches is not None:
-        profile.niches.set(NicheTag.objects.filter(slug__in=payload.niches))
+        profile.niches.set(_usable_niches(request.user).filter(slug__in=payload.niches))
     if payload.social_links is not None:
         _sync_social_links(profile, payload.social_links)
     return _my_profile(profile)

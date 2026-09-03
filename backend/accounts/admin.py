@@ -98,7 +98,26 @@ class VerificationRequestAdmin(admin.ModelAdmin):
         )
 
 
-admin.site.register(NicheTag)
+@admin.register(NicheTag)
+class NicheTagAdmin(admin.ModelAdmin):
+    list_display = ["name", "status", "suggested_by", "created_at", "creator_count"]
+    list_filter = ["status"]
+    search_fields = ["name"]
+    actions = ["approve", "reject"]
+
+    @admin.display(description="Creators")
+    def creator_count(self, obj):
+        return obj.creators.count()
+
+    @admin.action(description="Approve selected (makes them public)")
+    def approve(self, request, queryset):
+        queryset.update(status=NicheTag.Status.APPROVED)
+
+    @admin.action(description="Reject selected (removes them from profiles)")
+    def reject(self, request, queryset):
+        for tag in queryset:
+            tag.creators.clear()
+        queryset.update(status=NicheTag.Status.REJECTED)
 
 
 @admin.register(City)

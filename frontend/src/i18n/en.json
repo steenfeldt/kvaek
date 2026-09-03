@@ -218,6 +218,13 @@
     "empty": "No channels yet. Add at least one so brands can see your reach.",
     "hint": "Add the channels you create content on, with your username and approximate follower count. Brands only see the platform and follower count, not your username, until you have a deal. Changing a username means the follower count must be verified again."
   },
+  "niches": {
+    "suggest": "Suggest a niche",
+    "suggestPlaceholder": "E.g. Padel",
+    "send": "Suggest",
+    "suggestHint": "New niches are reviewed by us before brands can see them. You can use them on your profile right away.",
+    "pending": "Awaiting approval"
+  },
   "hashtags": {
     "placeholder": "Short bio – type # to add hashtags",
     "new": "New hashtag",

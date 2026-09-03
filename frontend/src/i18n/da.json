@@ -218,6 +218,13 @@
     "empty": "Ingen kanaler endnu. Tilføj mindst én, så brands kan se din rækkevidde.",
     "hint": "Tilføj de kanaler, du skaber indhold på, med brugernavn og cirka antal følgere. Brands ser kun platform og følgertal, ikke dit brugernavn, før I har en aftale. Ændrer du brugernavn, skal følgertallet verificeres igen."
   },
+  "niches": {
+    "suggest": "Foreslå niche",
+    "suggestPlaceholder": "Fx Padel",
+    "send": "Foreslå",
+    "suggestHint": "Nye nicher gennemgås af os, før brands kan se dem. Du kan bruge dem på din profil med det samme.",
+    "pending": "Afventer godkendelse"
+  },
   "hashtags": {
     "placeholder": "Kort om dig – skriv # for at tilføje hashtags",
     "new": "Nyt hashtag",
